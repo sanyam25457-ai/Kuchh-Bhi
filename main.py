@@ -26,6 +26,7 @@ def iType():
         return
 
 def main():
+        print("hello world")
         return
 
 if __name__ == "__main__":
