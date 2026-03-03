@@ -1,8 +1,7 @@
 def error():
         return
 
-def checkType():
-        return
+
 
 def rType():
         return
