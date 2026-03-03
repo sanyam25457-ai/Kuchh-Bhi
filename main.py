@@ -25,6 +25,8 @@ def jType():
 def iType():
         return
 
-#main
+def main():
+        return
 
-"""Write main here"""
+if __name__ == "__main__":
+        main()
