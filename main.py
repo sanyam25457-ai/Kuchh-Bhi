@@ -1,7 +1,7 @@
 def error():
         return
 
-#Ujjwal good python
+
 
 def rType():
         return
@@ -19,6 +19,7 @@ def uType():
         return
 
 def jType():
+        print("Why are you gay!?")
         return
 
 def iType():
