@@ -1,7 +1,8 @@
 def error():
         return
 
-
+def checkType():
+        return
 
 def rType():
         return
@@ -19,14 +20,12 @@ def uType():
         return
 
 def jType():
-        print("Why are you gay!?")
         return
 
 def iType():
         return
 
 def main():
-        print("hello world")
         return
 
 if __name__ == "__main__":
