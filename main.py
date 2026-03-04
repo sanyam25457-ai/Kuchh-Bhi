@@ -28,7 +28,7 @@ def convert(inst:str) -> str:
                 case _:
                         pass
 
-def checkType(inst:str):
+def checkType(inst:str) -> str:
         pass
 
 def signExt(funcType:str, binString:str) -> str:
@@ -75,7 +75,7 @@ def sTypr(inst:str) -> str:
 def bType(inst:str) -> str:
         pass
 
-def sType(inst:str):
+def sType(inst:str) -> str:
         pass
 
 def uType(inst:str) -> str:
