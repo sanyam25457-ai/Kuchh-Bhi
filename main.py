@@ -9,6 +9,8 @@
 
 # 4. Break instruction into words using .split()
 
+# 5. For errors in any type raise ZeroDivisonError and catch it in convert()
+
 def convert(inst:str) -> str:
         instType = checkType(inst)
 
@@ -26,7 +28,7 @@ def convert(inst:str) -> str:
                 case "J":
                         binInst = jType(inst)
                 case _:
-                        pass
+                        raise ZeroDivisionError
 
 def checkType(inst:str):
         pass
