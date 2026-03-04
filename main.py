@@ -126,7 +126,6 @@ def rType(inst:str) -> str:
 
 def iType(inst:str) -> str:
         inst=inst.split()
-        binInst=""
         match(inst[0]):
                 case "addi":
                         opcode="0010011"
@@ -148,7 +147,7 @@ def iType(inst:str) -> str:
         if rd not in registers:
                 raise ZeroDivisionError
         else:
-                rd=format(rd,"05b")
+                rd=format(registers.get(rd),"05b")
 
         if opcode=="0010011" or opcode=="1100111":
                 if(len(inst)!=4):
@@ -167,15 +166,17 @@ def iType(inst:str) -> str:
         if rs not in registers:
                 raise ZeroDivisionError
         else:
-                rs=format(rs,"05b")
+                rs=format(registers.get(rs),"05b")
         
         if not imm.lstrip("-").isdigit() or int(imm)>2047 or int(imm)<-2048:
                 raise ZeroDivisionError
         else:
-                imm=signExt(imm,"I")
-                imm=imm[-12:]   #since signExt returns 32 bit imm and I need 12 bit imm here
+                imm=int(imm)
+                imm=format(imm & 0xfff,"012b")
+                        
         
         binInst=imm+funct3+rs+rd+opcode
+        return binInst
 
 def sTypr(inst:str) -> str:
         pass
