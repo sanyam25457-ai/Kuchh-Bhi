@@ -13,7 +13,9 @@
 
 # 6. Start all binary strings with "0b" followed by 0s and 1s to keep the format same overall.
 
-#7. call corr() to remove commas
+#7. Call corr() to remove commas
+
+#8. Call register() to get hexcode of register if not already provided.
 
 def convert(inst:str) -> str:
         instType = checkType(inst)
