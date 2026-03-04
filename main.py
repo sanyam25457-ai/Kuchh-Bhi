@@ -218,6 +218,7 @@ def main():
                 
                 except ZeroDivisionError:
                         print("You encountered an error on line", i)
+                        break
 
 
         pass
