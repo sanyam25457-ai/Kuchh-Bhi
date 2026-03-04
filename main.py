@@ -82,10 +82,11 @@ def convert(inst:str) -> str:
                         binInst = jType(inst)
                 case _:
                         raise ZeroDivisionError
+        return binInst
 
 def checkType(inst:str)->str:
-        inst=inst.split()
-        temp=inst[0]
+        inst = inst.split()
+        temp = inst[0]
         if temp in instructions:
                 return instructions.get(temp)
         
@@ -127,8 +128,8 @@ def rType(inst:str) -> str:
         pass
 
 def iType(inst:str) -> str:
-        inst=inst.split()
-        binInst=""
+        inst = inst.split()
+        binInst = ""
         match(inst[0]):
                 case "addi":
                         opcode="0010011"
@@ -146,40 +147,40 @@ def iType(inst:str) -> str:
                 case _:
                         raise ZeroDivisionError
                 
-        rd=corr(inst[1])
+        rd = corr(inst[1])
         if rd not in registers:
                 raise ZeroDivisionError
         else:
-                rd=format(rd,"05b")
+                rd = format(rd,"05b")
 
-        if opcode=="0010011" or opcode=="1100111":
-                if(len(inst)!=4):
+        if opcode == "0010011" or opcode == "1100111":
+                if(len(inst) != 4):
                         raise ZeroDivisionError
                 else:
-                        rs=corr(inst[2])
-                        imm=inst[3]
+                        rs = corr(inst[2])
+                        imm = inst[3]
         else:
-                temp=inst[2].split("(")
-                if len(temp)!=2:
+                temp = inst[2].split("(")
+                if len(temp) != 2:
                         raise ZeroDivisionError
-                temp[1]=temp[1].rstrip(")")
-                imm=temp[0]
-                rs=temp[1]
+                temp[1] = temp[1].rstrip(")")
+                imm = temp[0]
+                rs = temp[1]
 
         if rs not in registers:
                 raise ZeroDivisionError
         else:
-                rs=format(rs,"05b")
+                rs = format(rs,"05b")
         
-        if not imm.lstrip("-").isdigit() or int(imm)>2047 or int(imm)<-2048:
+        if not imm.lstrip("-").isdigit() or int(imm) > 2047 or int(imm) < -2048:
                 raise ZeroDivisionError
         else:
-                imm=signExt(imm,"I")
-                imm=imm[-12:]   #since signExt returns 32 bit imm and I need 12 bit imm here
+                imm = signExt(imm, "I")
+                imm = imm[-12:]   #since signExt returns 32 bit imm and I need 12 bit imm here
         
-        binInst=imm+funct3+rs+rd+opcode
+        binInst = imm+funct3+rs+rd+opcode
 
-def sTypr(inst:str) -> str:
+def sType(inst:str) -> str:
         pass
 
 def bType(inst:str) -> str:
@@ -207,7 +208,7 @@ def uType(inst:str) -> str:
         else:
                 rd = bin(rd)
         
-        imm = inst[2]
+        imm = inst[2]   
         imm = signExt(imm, "J")
 
         return binInst
