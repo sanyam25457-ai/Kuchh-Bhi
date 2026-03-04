@@ -106,7 +106,66 @@ def checkType(inst:str)->str:
         return "Not Found"       
 
 def rType(inst:str) -> str:
-        pass
+        inst=inst.split()
+        match (inst[0]):
+                case "add":
+                        funct7="0000000"
+                        funct3="000"
+                case "sub":
+                        funct7="0100000"
+                        funct3="000"
+                case "sll":
+                        funct7="0000000"
+                        funct3="001"
+                case "slt":
+                        funct7="0000000"
+                        funct3="010"
+                case "sltu":
+                        funct7="0000000"
+                        funct3="011"
+                case "xor":
+                        funct7="0000000"
+                        funct3="100"
+                case "srl":
+                        funct7="0000000"
+                        funct3="101"
+                case "or":
+                        funct7="0000000"
+                        funct3="110"
+                case "and":
+                        funct7="0000000"
+                        funct3="111"
+                case _:
+                        raise ZeroDivisionError
+                                                                
+        reg=inst[1].split(",")
+        rd=reg[0]
+        rs1=reg[1]
+        rs2=reg[2]
+        if rd not in registers:
+                raise ZeroDivisionError
+        else :
+                rd_bin=registers.get(rd)
+                rd_bin=("{:05b}".format(rd_bin))
+
+        
+        if rs1 not in registers:
+                raise ZeroDivisionError
+        else :
+                rs1_bin=registers.get(rs1)
+                rs1_bin=("{:05b}".format(rs1_bin))
+
+
+        if rs2 not in registers:
+                raise ZeroDivisionError
+        else : 
+                rs2_bin=registers.get(rs2)
+                rs2_bin=("{:05b}".format(rs2_bin))
+
+        opcode="0110011"
+
+        bin_inst=funct7+rs2_bin+rs1_bin+funct3+rd_bin+opcode        
+        return bin_inst
 
 def iType(inst:str) -> str:
         inst=inst.split()
@@ -163,7 +222,55 @@ def iType(inst:str) -> str:
         return binInst
 
 def sType(inst:str) -> str:
-        pass
+        inst=inst.split()
+        if inst[0]=="sw":
+                reg=inst[1].split(",")
+                rs2=reg[0]
+                if rs2 not in registers:
+                        raise ZeroDivisionError
+                else:
+                        rs2_bin=registers.get(rs2)
+                        rs2_bin=("{:05b}".format(rs2_bin))
+                        immt_rs1=reg[1].split("(")
+                        immt=int(immt_rs1[0])
+                        
+                        if immt<0:#take its 2~complement 
+                                mag=abs(immt)
+                                one_comp=""
+                                mag_bin=("{:012b}".format(mag))
+                                for bit in mag_bin:
+                                        if bit=='0':
+                                                one_comp +='1'
+                                        else :
+                                                one_comp +='0'
+                                two_comp=format(int(one_comp,2)+1,f'012b')
+                                immt_bin=two_comp
+                        else:
+                              immt_bin=("{:012b}".format(immt))
+                              immt_bin=str(immt_bin)
+
+                        rs1=immt_rs1[1].strip(")")
+                        if rs1 not in registers:
+                                raise ZeroDivisionError
+                        else :
+                                rs1_bin=registers.get(rs1)
+                                rs1_bin=("{:05b}".format(rs1_bin))
+
+
+        else :
+                raise ZeroDivisionError
+
+
+        opcode="0100011"
+        funct3="010"
+        bin_inst=immt_bin[:7]+rs2_bin+rs1_bin+funct3+immt_bin[7:]+opcode
+        return bin_inst               
+
+                        
+
+
+
+        
 
 def bType(inst:str) -> str:
         global pc
