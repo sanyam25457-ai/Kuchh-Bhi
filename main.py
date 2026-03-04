@@ -177,8 +177,7 @@ def uType(inst:str) -> str:
         else:
                 rd = bin(rd)
         
-        imm = inst[2]   
-        imm = signExt(imm, "J")
+        imm = inst[2]
 
         return binInst
 
