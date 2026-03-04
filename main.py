@@ -128,8 +128,7 @@ def rType(inst:str) -> str:
         pass
 
 def iType(inst:str) -> str:
-        inst = inst.split()
-        binInst = ""
+        inst=inst.split()
         match(inst[0]):
                 case "addi":
                         opcode="0010011"
