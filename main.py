@@ -17,7 +17,7 @@
 
 #8. Call register() to get hexcode of register if not already provided.
 
-instructions={
+instructions = {
     "add":"R",
     "sub":"R",
     "slt":"R",
@@ -64,7 +64,7 @@ registers = {
 }
 
 
-def convert(inst:str) -> str:
+def convert(inst:str, label:bool) -> str:
         instType = checkType(inst)
 
         match(instType.upper()):
@@ -170,16 +170,18 @@ def uType(inst:str) -> str:
                         raise ZeroDivisionError
         
         rd = corr(inst[1])
-        rd = int(rd[2:])
+        rd = registers.get(rd)
         
         if rd > 31 and rd < 0:
                 raise ZeroDivisionError
         else:
-                rd = bin(rd)
+                rd = format(rd, "05b")
         
-        imm = inst[2]
-
-        return binInst
+        imm = int(inst[2])
+        imm = format(imm & 0xfffffff, "020b")
+        
+        binInst = imm + " " + rd + " " + opcode
+        print(binInst)
 
 def jType(inst:str) -> str:
         pass
@@ -189,8 +191,7 @@ def corr(string:str) -> str:
                 string  = string[:-1]
         return string
         
-def main():
-
+def main():     
         for i in range(0):
                 instruction = instruction.lower() #After input lower all case
                 try:
@@ -202,7 +203,7 @@ def main():
                         print("You encountered an error on line", i)
 
 
-        pass   
+        pass
 
 #Please remove pass after the function has been built
 if __name__ == "__main__":
