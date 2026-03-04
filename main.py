@@ -11,6 +11,10 @@
 
 # 5. For errors in any type raise ZeroDivisonError and catch it in main()
 
+# 6. Start all binary strings with "0b" followed by 0s and 1s to keep the format same overall.
+
+#7. call corr() to remove commas
+
 def convert(inst:str) -> str:
         instType = checkType(inst)
 
@@ -33,7 +37,7 @@ def convert(inst:str) -> str:
 def checkType(inst:str):
         pass
 
-def signExt(funcType:str, binString:str) -> str:
+def signExt(binString:str, funcType:str) -> str:
         """
         Isolate the immediate bits put them in CORRECT ORDER and then pass it as an argument as string.
         
@@ -84,18 +88,47 @@ def uType(inst:str) -> str:
         inst = inst.split()
         binInst = ""
         match(inst[0]):
-                case "":
-                        pass
+                case "lui":
+                        opcode = "0110111"
+                case "auipc":
+                        opcode = "0010111"
+                case _:
+                        raise ZeroDivisionError
         
+        rd = corr(inst[1])
+        rd = int(rd[2:])
+        
+        if rd > 31 and rd < 0:
+                raise ZeroDivisionError
+        else:
+                rd = bin(rd)
+        
+        imm = inst[2]
+        imm = signExt(imm, "J")
+
         return binInst
 
 def jType(inst:str) -> str:
         pass
 
+def corr(string:str) -> str:
+        while(string[-1] == ","):
+                string  = string[:-1]
+        return string
+        
 def main():
 
-        instruction = instruction.lower() #After input lower all case
-        binInstruction = convert(instruction)
+        for i in range(0):
+                instruction = instruction.lower() #After input lower all case
+                try:
+                        binInstruction = convert(instruction)
+                        
+                        #Write binary string onto file
+                
+                except ZeroDivisionError:
+                        print("You encountered an error on line", i)
+
+
         pass   
 
 #Please remove pass after the function has been built
