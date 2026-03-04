@@ -180,7 +180,6 @@ def uType(inst:str) -> str:
         imm = int(inst[2])
         imm = format(imm & 0xfffffff, "020b")
         
-        binInst = imm + " " + rd + " " + opcode
         print(binInst)
 
 def jType(inst:str) -> str:
