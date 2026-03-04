@@ -159,7 +159,7 @@ def iType(inst:str) -> str:
                 imm = format(imm & 0xfff,"012b")
                         
         
-        binInst=imm+funct3+rs+rd+opcode
+        binInst = imm + funct3 + rs + rd + opcode
         return binInst
 
 def sType(inst:str) -> str:
@@ -174,6 +174,10 @@ def sType(inst:str):
 
 def uType(inst:str) -> str:
         inst = inst.split()
+        
+        if len(inst) != 3:
+                raise ZeroDivisionError
+
         binInst = ""
         match(inst[0]):
                 case "lui":
@@ -192,7 +196,7 @@ def uType(inst:str) -> str:
                 rd = format(rd, "05b")
         
         imm = int(inst[2])
-        imm = format(imm & 0xfffffff, "020b")
+        imm = format(imm & 0xffffffff, "020b")
         
         binInst = imm + rd + opcode
         return binInst
