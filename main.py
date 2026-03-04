@@ -13,7 +13,9 @@
 
 # 6. Start all binary strings with "0b" followed by 0s and 1s to keep the format same overall.
 
-#7. call corr() to remove commas
+#7. Call corr() to remove commas
+
+#8. Call register() to get hexcode of register if not already provided.
 
 instructions={
     "add":"R",
@@ -80,10 +82,11 @@ def convert(inst:str) -> str:
                         binInst = jType(inst)
                 case _:
                         raise ZeroDivisionError
+        return binInst
 
 def checkType(inst:str)->str:
-        inst=inst.split()
-        temp=inst[0]
+        inst = inst.split()
+        temp = inst[0]
         if temp in instructions:
                 return instructions.get(temp)
         
@@ -143,41 +146,42 @@ def iType(inst:str) -> str:
                 case _:
                         raise ZeroDivisionError
                 
-        rd=corr(inst[1])
+        rd = corr(inst[1])
         if rd not in registers:
                 raise ZeroDivisionError
         else:
-                rd=format(registers.get(rd),"05b")
+                rd = format(rd,"05b")
 
-        if opcode=="0010011" or opcode=="1100111":
-                if(len(inst)!=4):
+        if opcode == "0010011" or opcode == "1100111":
+                if(len(inst) != 4):
                         raise ZeroDivisionError
                 else:
-                        rs=corr(inst[2])
-                        imm=inst[3]
+                        rs = corr(inst[2])
+                        imm = inst[3]
         else:
-                temp=inst[2].split("(")
-                if len(temp)!=2:
+                temp = inst[2].split("(")
+                if len(temp) != 2:
                         raise ZeroDivisionError
-                temp[1]=temp[1].rstrip(")")
-                imm=temp[0]
-                rs=temp[1]
+                temp[1] = temp[1].rstrip(")")
+                imm = temp[0]
+                rs = temp[1]
 
         if rs not in registers:
                 raise ZeroDivisionError
         else:
-                rs=format(registers.get(rs),"05b")
+                rs = format(rs,"05b")
         
-        if not imm.lstrip("-").isdigit() or int(imm)>2047 or int(imm)<-2048:
+        if not imm.lstrip("-").isdigit() or int(imm) > 2047 or int(imm) < -2048:
                 raise ZeroDivisionError
         else:
                 imm=int(imm)
                 imm=format(imm & 0xfff,"012b")
                         
+        
         binInst=imm+funct3+rs+rd+opcode
         return binInst
 
-def sTypr(inst:str) -> str:
+def sType(inst:str) -> str:
         pass
 
 def bType(inst:str) -> str:
@@ -205,7 +209,7 @@ def uType(inst:str) -> str:
         else:
                 rd = bin(rd)
         
-        imm = inst[2]
+        imm = inst[2]   
         imm = signExt(imm, "J")
 
         return binInst
