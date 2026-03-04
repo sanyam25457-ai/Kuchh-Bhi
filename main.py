@@ -217,11 +217,12 @@ def main():
                 try:
                         isLabel = 0 if(":" not in instruction) else 1
                         binInstruction = convert(instruction, isLabel, i)
-                        
+                        pc+=1
                         #Write binary string onto file
                 
                 except ZeroDivisionError:
                         print("You encountered an error on line", i)
+                        break
 
 
         pass
