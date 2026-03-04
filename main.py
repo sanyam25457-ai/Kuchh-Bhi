@@ -92,38 +92,6 @@ def checkType(inst:str)->str:
         
         return "Not Found"       
 
-def signExt(binString:str, funcType:str) -> str:
-        """
-        Isolate the immediate bits put them in CORRECT ORDER and then pass it as an argument as string.
-        
-        try-catch for ValueError and ZeroDivisonError when using signExt()
-        
-        Only pass the IMMEDIATE BINARY not THE ENTIRE INSTRUCTION.
-        """
-        result_imm = ""
-        
-        
-        if(funcType.upper() == "R"):
-                raise ValueError
-        
-        elif(funcType.upper() == "I" or funcType.upper() == "S"):
-                result_imm = "0b" + (20*binString[2]) + binString[2:]
-
-        
-        elif(funcType.upper() == "B"):
-                result_imm = "0b" + (19*binString[2]) + binString[2:] + "0"
-
-        elif(funcType.upper() == "U"):
-                result_imm = binString + (12*"0")
-        
-        elif(funcType.upper() == "J"):
-                result_imm = "0b" + (12*binString[2]) + binString[3:] + "0"
-
-        else:
-                raise ZeroDivisionError
-
-        return result_imm
-
 def rType(inst:str) -> str:
         pass
 
@@ -174,8 +142,8 @@ def iType(inst:str) -> str:
         if not imm.lstrip("-").isdigit() or int(imm) > 2047 or int(imm) < -2048:
                 raise ZeroDivisionError
         else:
-                imm=int(imm)
-                imm=format(imm & 0xfff,"012b")
+                imm = int(imm)
+                imm = format(imm & 0xfff,"012b")
                         
         
         binInst=imm+funct3+rs+rd+opcode
