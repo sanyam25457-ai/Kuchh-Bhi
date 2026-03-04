@@ -17,6 +17,8 @@
 
 #8. Call register() to get hexcode of register if not already provided.
 
+pc = 0
+
 instructions = {
     "add":"R",
     "sub":"R",
@@ -62,9 +64,20 @@ registers = {
     "x24": 24, "x25": 25, "x26": 26, "x27": 27,
     "x28": 28, "x29": 29, "x30": 30, "x31": 31
 }
-# hello
 
-def convert(inst:str, label:bool) -> str:
+labels = {}
+
+def convert(inst:str, label:bool, index:int) -> str:
+        if label:
+                if inst.strip()[-1] == ":":
+                        labels[inst[:-1]] = index
+                        return
+                
+                else:
+                        inst = inst.split()
+                        labels[inst[0][:-1]] = index
+                        " ".join(inst[1:])
+
         instType = checkType(inst)
 
         match(instType.upper()):
@@ -153,6 +166,7 @@ def sType(inst:str) -> str:
         pass
 
 def bType(inst:str) -> str:
+        global pc
         pass
 
 def sType(inst:str):
@@ -184,6 +198,7 @@ def uType(inst:str) -> str:
         return binInst
 
 def jType(inst:str) -> str:
+        global pc
         pass
 
 def corr(string:str) -> str:
@@ -191,11 +206,13 @@ def corr(string:str) -> str:
                 string  = string[:-1]
         return string
         
-def main():     
+def main():
+        
         for i in range(0):
                 instruction = instruction.lower() #After input lower all case
                 try:
-                        binInstruction = convert(instruction)
+                        isLabel = 0 if(":" not in instruction) else 1
+                        binInstruction = convert(instruction, isLabel, i)
                         
                         #Write binary string onto file
                 
