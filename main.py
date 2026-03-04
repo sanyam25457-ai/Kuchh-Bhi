@@ -62,7 +62,7 @@ registers = {
     "x24": 24, "x25": 25, "x26": 26, "x27": 27,
     "x28": 28, "x29": 29, "x30": 30, "x31": 31
 }
-
+# hello
 
 def convert(inst:str, label:bool) -> str:
         instType = checkType(inst)
@@ -180,7 +180,8 @@ def uType(inst:str) -> str:
         imm = int(inst[2])
         imm = format(imm & 0xfffffff, "020b")
         
-        print(binInst)
+        binInst = imm + rd + opcode
+        return binInst
 
 def jType(inst:str) -> str:
         pass
