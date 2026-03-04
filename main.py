@@ -118,7 +118,7 @@ def iType(inst:str) -> str:
         if rd not in registers:
                 raise ZeroDivisionError
         else:
-                rd = format(rd,"05b")
+                rd = format(registers.get(rd),"05b")
 
         if opcode == "0010011" or opcode == "1100111":
                 if(len(inst) != 4):
@@ -137,7 +137,7 @@ def iType(inst:str) -> str:
         if rs not in registers:
                 raise ZeroDivisionError
         else:
-                rs = format(rs,"05b")
+                rs = format(registers.get(rs),"05b")
         
         if not imm.lstrip("-").isdigit() or int(imm) > 2047 or int(imm) < -2048:
                 raise ZeroDivisionError
