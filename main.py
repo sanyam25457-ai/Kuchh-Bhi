@@ -9,7 +9,7 @@
 
 # 4. Break instruction into words using .split()
 
-# 5. For errors in any type raise ZeroDivisonError and catch it in convert()
+# 5. For errors in any type raise ZeroDivisonError and catch it in main()
 
 def convert(inst:str) -> str:
         instType = checkType(inst)
@@ -30,7 +30,7 @@ def convert(inst:str) -> str:
                 case _:
                         raise ZeroDivisionError
 
-def checkType(inst:str) -> str:
+def checkType(inst:str):
         pass
 
 def signExt(funcType:str, binString:str) -> str:
@@ -77,7 +77,7 @@ def sTypr(inst:str) -> str:
 def bType(inst:str) -> str:
         pass
 
-def sType(inst:str) -> str:
+def sType(inst:str):
         pass
 
 def uType(inst:str) -> str:
