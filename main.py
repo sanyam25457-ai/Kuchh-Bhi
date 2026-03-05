@@ -65,7 +65,7 @@ registers = {
     "x28": 28, "x29": 29, "x30": 30, "x31": 31
 }
 
-labels = {}
+labels = {"loop": 4, "update":6}
 
 def corrInstruction(inst:str) -> str:
         temp = list(inst.partition(" "))
@@ -401,32 +401,37 @@ def main():
         global pc
         global labels
 
+        import sys
+        input_file=sys.argv[1]
+        machine_out=sys.argv[2]
+        optional_out=sys.argv[3] if len(sys.argv) >3 else None
 
-        #fh_read = open("", 'r')
-        #instructions = fh_read.readlines()
-        #fh_read.close()
-        """
+        fh_read = open(input_file, 'r')
+        instructions = fh_read.readlines()
+        fh_read.close()
+        
         tempIndex = -1
-        for instruc in instrcutions:
+        for instruc in instructions:
                 tempIndex += 1
                 if ":" not in instruc:
                         continue
                 
                 label = instruc.split(":")[0]
                 labels[label] = tempIndex            
-        """
         
-        #fh_write = open("", 'w')
+        
+        fh_write = open(machine_out, 'w')
         for i in range(len(instructions)):
                 binInstruction = ""
-                #instruction = instructions[i].strip("/r/n").lower()
-                instruction = instruction.lower()
+                instruction = instructions[i].strip("/r/n").lower()
+                instruction = "loop: bne t0,t1,update"
                 try:
                         isLabel = 0 if(":" not in instruction) else 1
                         binInstruction = convert(instruction, isLabel, pc)
                         print(binInstruction)
                         pc += 1
-                        #fh_write.writeline(binInstruction)
+                        fh_write.write(binInstruction)
+                        fh_write.write("\n")
                 
                 except ZeroDivisionError:
                         print("You encountered an error on line", i)
