@@ -296,43 +296,41 @@ def bType(inst:str) -> str:
         return output
 
 def sType(inst:str) -> str:
-        global registers
+    global registers
 
-        inst = inst.lower().split()
-        if len(inst) != 3 or inst[0] != "sw":
-                raise ZeroDivisionError
-        
-        rs2 = corr(inst[1])
-        temp = inst[2]
-        if "(" not in temp or ")" not in temp:
-                raise ZeroDivisionError
-        
-        temp = inst.split("(")
-        if len(temp) != 2:
-                raise ZeroDivisionError
-        
-        imm = corr(temp[0])
-        rs1 = corr(temp[1].strip(")"))
+    inst = inst.lower().split()
+    if len(inst) != 3 or inst[0] != "sw":
+        raise ZeroDivisionError
+    
+    rs2 = corr(inst[1])
+    temp = inst[2]
+    if "(" not in temp or ")" not in temp:
+        raise ZeroDivisionError
 
-        if rs1 not in registers or rs2 not in registers:
-                raise ZeroDivisionError
-        
-        rs1 = registers.get(rs1)
-        rs1 = format(rs1, "05b")
-        rs2 = registers.get(rs2)
-        rs2 = format(rs2, "05b")
+    temp = temp.split("(")
+    if len(temp) != 2:
+        raise ZeroDivisionError
+    
+    imm = corr(temp[0])
+    rs1 = corr(temp[1].strip(")"))
 
-        imm = int(imm)
-        if imm > 2047 or imm <-2048:
-                raise ZeroDivisionError
-        
-        imm = format(imm & 0xfff, "012b")
+    if rs1 not in registers or rs2 not in registers:
+        raise ZeroDivisionError
+    
+    rs1 = format(registers.get(rs1), "05b")
+    rs2 = format(registers.get(rs2), "05b")
 
-        opcode = "0100011"
-        funct3 = "010"
+    imm = int(imm)
+    if imm > 2047 or imm < -2048:
+        raise ZeroDivisionError
+    
+    imm = format(imm & 0xfff, "012b")
 
-        binInst = imm[:7] + rs2 + rs1 + funct3 + imm[7:] + opcode
-        return binInst               
+    opcode = "0100011"
+    funct3 = "010"
+
+    binInst = imm[:7] + rs2 + rs1 + funct3 + imm[7:] + opcode
+    return binInst             
 
 def uType(inst:str) -> str:
         global registers
