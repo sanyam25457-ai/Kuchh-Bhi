@@ -307,7 +307,6 @@ def sType(inst: str) -> str:
 	if "(" not in temp or ")" not in temp:
 		raise ZeroDivisionError
 
-	# Corrected: split the memory operand, not the whole list
 	temp = temp.split("(")
 	if len(temp) != 2:
 		raise ZeroDivisionError
@@ -332,6 +331,36 @@ def sType(inst: str) -> str:
 
 	binInst = imm[:7] + rs2 + rs1 + funct3 + imm[7:] + opcode
 	return binInst
+
+def uType(inst:str) -> str:
+        global registers
+
+        inst = inst.split()
+        
+        if len(inst) != 3:
+                raise ZeroDivisionError
+
+        binInst = ""
+        match(inst[0]):
+                case "lui":
+                        opcode = "0110111"
+                case "auipc":
+                        opcode = "0010111"
+                case _:
+                        raise ZeroDivisionError
+        
+        rd = corr(inst[1])
+        if rd not in registers:
+                raise ZeroDivisionError
+        
+        rd = registers.get(rd)        
+        rd = format(rd, "05b")
+        
+        imm = int(corr(inst[2]))
+        imm = format(imm & 0xfffff, "020b")
+        
+        binInst = imm + rd + opcode
+        return binInst
 
 def jType(inst:str) -> str:
         global pc
