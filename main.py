@@ -106,7 +106,14 @@ def checkType(inst:str)->str:
         return "Not Found"       
 
 def rType(inst:str) -> str:
+        inst_split=inst.split()
+        part=inst_split[0]
+        
+        operands="".join(inst_split[1:])
+        
+        inst=part+" "+operands
         inst=inst.split()
+        
         match (inst[0]):
                 case "add":
                         funct7="0000000"
@@ -222,6 +229,12 @@ def iType(inst:str) -> str:
         return binInst
 
 def sType(inst:str) -> str:
+        inst_split=inst.split()
+        part=inst_split[0]
+        
+        operands="".join(inst_split[1:])
+        
+        inst=part+" "+operands
         inst=inst.split()
         if inst[0]=="sw":
                 reg=inst[1].split(",")
