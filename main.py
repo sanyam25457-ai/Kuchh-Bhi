@@ -248,7 +248,6 @@ def bType(inst:str) -> str:
         elements = inst.split()
 
         if len(elements) != 4:
-                print("h")
                 raise ZeroDivisionError
 
         d_funct3 = {
@@ -262,7 +261,6 @@ def bType(inst:str) -> str:
 
         operation = elements[0]
         if operation not in d_funct3:
-                print("hh")
                 raise ZeroDivisionError
 
         funct3 = d_funct3[operation]
@@ -271,7 +269,6 @@ def bType(inst:str) -> str:
         rs2 = corr(elements[2])
 
         if rs1 not in registers or rs2 not in registers:
-                print("hhh")
                 raise ZeroDivisionError
         
         rs1 = registers.get(rs1)
@@ -282,13 +279,11 @@ def bType(inst:str) -> str:
         imm = corr(elements[3])
         if not imm.isnumeric():
                 if imm not in labels:
-                        print("hhhh")
                         raise ZeroDivisionError
                 val = int(labels[imm])
                 imm = 4*(val - pc)
         imm = int(imm)
         if imm%4 != 0 or imm > 2047 or imm < -2048:
-                print("hhhhh")
                 raise ZeroDivisionError
         
         imm_bin = format(imm & 0xffffffff, '012b')
