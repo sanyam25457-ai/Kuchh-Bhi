@@ -90,7 +90,7 @@ def convert(inst:str, label:bool, index:int) -> str:
                 
                 else:
                         inst = inst.split(":")
-                        " ".join(inst[1:])
+                        inst = " ".join(inst[1:])
         
         inst = corrInstruction(inst)
         instType = checkType(inst)
@@ -420,7 +420,7 @@ def main():
         for i in range(len(instructions)):
                 binInstruction = ""
                 #instruction = instructions[i].strip("/r/n").lower()
-                instruction = instruction.lower()
+                instruction = "loop: "
                 try:
                         isLabel = 0 if(":" not in instruction) else 1
                         binInstruction = convert(instruction, isLabel, pc)
