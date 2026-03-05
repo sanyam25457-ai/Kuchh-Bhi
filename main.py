@@ -65,11 +65,10 @@ registers = {
     "x28": 28, "x29": 29, "x30": 30, "x31": 31
 }
 
-labels = {"loop": 4, "update":6}
+labels = {}
 
 def corrInstruction(inst:str) -> str:
         temp = list(inst.partition(" "))
-        print(temp)
         if "," in temp[2].strip(","):
                 temp2 = temp[1:]
                 temp2 = ("".join("".join(temp2).split(" "))).split(",")
@@ -421,7 +420,7 @@ def main():
         for i in range(len(instructions)):
                 binInstruction = ""
                 #instruction = instructions[i].strip("/r/n").lower()
-                instruction = "loop: bne t0,t1,update"
+                instruction = instruction.lower()
                 try:
                         isLabel = 0 if(":" not in instruction) else 1
                         binInstruction = convert(instruction, isLabel, pc)
