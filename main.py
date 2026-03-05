@@ -281,9 +281,10 @@ def bType(inst:str) -> str:
                         raise ZeroDivisionError
                 val = int(labels[imm])
                 imm = 2*(val - pc)
-        imm = int(imm)
-        if imm%4 != 0 or imm > 2047 or imm < -2048:
-                raise ZeroDivisionError
+        else:
+                imm=int(imm)
+                if imm%4 != 0 or imm > 2047 or imm < -2048:
+                        raise ZeroDivisionError
         
         imm_bin = format(imm & 0xfff, '012b')
         imm_12 = imm_bin[0]
@@ -294,7 +295,6 @@ def bType(inst:str) -> str:
         output = imm_12 + imm_10_5 + rs2 + rs1 + funct3 + imm_4_1 + imm_11 + opcode
 
         return output
-
 def sType(inst: str) -> str:
 	global registers
 
@@ -372,6 +372,10 @@ def jType(inst:str) -> str:
         rd = corr(inst[1])
         imm = corr(inst[2])
 
+        if rd not in registers:
+                raise ZeroDivisionError
+        rd=registers.get(rd)
+        rd=format(rd,"05b")
         if not imm.strip().strip("-").isnumeric():
                 if imm not in labels:
                         raise ZeroDivisionError
