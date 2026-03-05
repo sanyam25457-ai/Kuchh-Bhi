@@ -232,7 +232,7 @@ def iType(inst:str) -> str:
                 raise ZeroDivisionError
         else:
                 imm = int(imm)
-                imm = format(imm & 0xfff,"012b")
+                imm = format(imm & 0xfff, "012b")
                         
         
         binInst = imm + funct3 + rs + rd + opcode
@@ -285,7 +285,7 @@ def bType(inst:str) -> str:
         if imm%4 != 0 or imm > 2047 or imm < -2048:
                 raise ZeroDivisionError
         
-        imm_bin = format(imm & 0xffffffff, '012b')
+        imm_bin = format(imm & 0xfff, '012b')
         imm_12 = imm_bin[0]
         imm_10_5 = imm_bin[2:8]
         imm_4_1 = imm_bin[8:]
@@ -326,7 +326,7 @@ def sType(inst:str) -> str:
         if imm > 2047 or imm <-2048:
                 raise ZeroDivisionError
         
-        imm = format(imm & 0xffffffff, "012b")
+        imm = format(imm & 0xfff, "012b")
 
         opcode = "0100011"
         funct3 = "010"
@@ -359,7 +359,7 @@ def uType(inst:str) -> str:
         rd = format(rd, "05b")
         
         imm = int(corr(inst[2]))
-        imm = format(imm & 0xffffffff, "020b")
+        imm = format(imm & 0xfffff, "020b")
         
         binInst = imm + rd + opcode
         return binInst
@@ -386,7 +386,7 @@ def jType(inst:str) -> str:
                 if imm%4 != 0 or imm > (2**19)-1 or imm < -(2**19):
                         raise ZeroDivisionError
                 
-                imm = format(imm & 0xffffffff, "020b")
+                imm = format(imm & 0xfffff, "020b")
 
         binInst = imm[0] + imm[-10:] + imm[1] + imm[2:-10] + rd + opcode
         return binInst
@@ -402,9 +402,9 @@ def main():
         global labels
 
         import sys
-        input_file=sys.argv[1]
-        machine_out=sys.argv[2]
-        optional_out=sys.argv[3] if len(sys.argv) >3 else None
+        input_file = sys.argv[1]
+        machine_out = sys.argv[2]
+        optional_out = sys.argv[3] if (len(sys.argv) > 3) else None
 
         fh_read = open(input_file, 'r')
         instructions = fh_read.readlines()
@@ -424,7 +424,7 @@ def main():
         for i in range(len(instructions)):
                 binInstruction = ""
                 instruction = instructions[i].strip("/r/n").lower()
-                instruction = "loop: bne t0,t1,update"
+                instruction = instruction.lower()
                 try:
                         isLabel = 0 if(":" not in instruction) else 1
                         binInstruction = convert(instruction, isLabel, pc)
@@ -432,11 +432,12 @@ def main():
                         pc += 1
                         fh_write.write(binInstruction)
                         fh_write.write("\n")
+                        fh_write.flush()
                 
                 except ZeroDivisionError:
                         print("You encountered an error on line", i)
                         break
-
+        fh_write.close()
 #Please remove pass after the function has been built
 if __name__ == "__main__":
         main()
