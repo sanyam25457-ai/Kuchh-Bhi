@@ -235,7 +235,7 @@ def iType(inst:str) -> str:
                 imm = format(imm & 0xfff, "012b")
                         
         
-        binInst = imm + funct3 + rs + rd + opcode
+        binInst = imm + rs + funct3 + rd + opcode
         return binInst        
 
 def bType(inst:str) -> str:
