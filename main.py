@@ -280,7 +280,7 @@ def bType(inst:str) -> str:
                 if imm not in labels:
                         raise ZeroDivisionError
                 val = int(labels[imm])
-                imm = 4*(val - pc)
+                imm = 2*(val - pc)
         imm = int(imm)
         if imm%4 != 0 or imm > 2047 or imm < -2048:
                 raise ZeroDivisionError
@@ -378,7 +378,7 @@ def jType(inst:str) -> str:
                 if imm not in labels:
                         raise ZeroDivisionError
                 
-                offset = labels.get(imm) - pc
+                offset = 2*(labels.get(imm) - pc)
                 imm = format(offset & 0xffffffff, "020b")
         
         else:
