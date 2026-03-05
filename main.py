@@ -272,9 +272,54 @@ def sType(inst:str) -> str:
 
         
 
-def bType(inst:str) -> str:
-        global pc
-        pass
+def BtypeToBinary(line: str):
+    opcode = "1100011"
+    elements = line.replace(",", " ").split()
+
+    d_funct3 = {
+        "beq": "000",
+        "bne": "001",
+        "blt": "100",
+        "bge": "101",
+        "bltu": "110",
+        "bgeu": "111"
+    }
+
+    instruction = elements[0].lower()
+    if instruction not in d_funct3:
+        raise ZeroDivisionError
+
+    funct3 = d_funct3[instruction]
+
+    def conv_to_regBin(reg_name):
+        reg_name = reg_name.lower()
+        if reg_name not in registers:
+            raise ZeroDivisionError
+        reg_val = registers[reg_name]
+        return format(int(reg_val), '05b')
+
+    rs1_bin = conv_to_regBin(elements[1])
+    rs2_bin = conv_to_regBin(elements[2])
+
+    
+    imm = elements[3]
+    if not imm.isnumeric():
+        if imm not in labels:
+            raise ZeroDivisionError
+        val = int(labels[imm])
+        imm = 4*(val - pc)
+    imm = int(imm)
+    if imm%4 != 0:
+        raise ZeroDivisionError
+    imm_bin = format(imm & 0x1FFF, '013b')
+    imm_12 = imm_bin[0]
+    imm_10_5 = imm_bin[2:8]
+    imm_4_1 = imm_bin[8:12]
+    imm_11 = imm_bin[1]
+
+    output = imm_12 + imm_10_5 + rs2_bin + rs1_bin + funct3 + imm_4_1 + imm_11 + opcode
+
+    return output
 
 def sType(inst:str):
         pass
