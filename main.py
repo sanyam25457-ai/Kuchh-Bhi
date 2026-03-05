@@ -68,10 +68,10 @@ registers = {
 labels = {}
 
 def corrInstruction(inst:str) -> str:
-        temp = inst.partition(" ")
-        if "," in temp[1].strip(","):
+        temp = list(inst.partition(" "))
+        if "," in temp[2].strip(","):
                 temp2 = temp[1:]
-                temp2 = "".join("".join(temp2).split(" ")).split(",")
+                temp2 = ("".join("".join(temp2).split(" "))).split(",")
                 temp2 = [i.strip() for i in temp2]
 
                 args = ", ".join(temp2)
@@ -83,16 +83,16 @@ def corrInstruction(inst:str) -> str:
         return inst.lower()
 
 def convert(inst:str, label:bool, index:int) -> str:
-        inst = corrInstruction(inst)
+
         if label:
                 if inst.strip()[-1] == ":":
                         return
                 
                 else:
                         inst = inst.split(":")
-                        inst = corrInstruction(inst)
                         " ".join(inst[1:])
-
+        
+        inst = corrInstruction(inst)
         instType = checkType(inst)
 
         match(instType.upper()):
@@ -209,7 +209,7 @@ def iType(inst:str) -> str:
 
         rd = format(registers.get(rd),"05b")
 
-        if opcode == "0010011" or opcode == "1100111":
+        if (opcode == "0010011") or (opcode == "1100111"):
                 if(len(inst) != 4):
                         raise ZeroDivisionError
                 rs = corr(inst[2])
@@ -419,10 +419,11 @@ def main():
         #fh_write = open("", 'w')
         for i in range(len(instructions)):
                 #instruction = instructions[i].strip("/r/n").lower()
-                instruction = instruction.lower() 
+                instruction = instruction.lower()
                 try:
                         isLabel = 0 if(":" not in instruction) else 1
                         binInstruction = convert(instruction, isLabel, pc)
+                        print(binInstruction)
                         pc += 1
                         #fh_write.writeline(binInstruction)
                 
