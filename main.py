@@ -65,7 +65,7 @@ registers = {
     "x28": 28, "x29": 29, "x30": 30, "x31": 31
 }
 
-labels = {"loop": 4, "update":6}
+labels = {}
 
 def corrInstruction(inst:str) -> str:
         temp = list(inst.partition(" "))
