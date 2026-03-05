@@ -65,10 +65,11 @@ registers = {
     "x28": 28, "x29": 29, "x30": 30, "x31": 31
 }
 
-labels = {}
+labels = {"loop": 4, "update":6}
 
 def corrInstruction(inst:str) -> str:
         temp = list(inst.partition(" "))
+        print(temp)
         if "," in temp[2].strip(","):
                 temp2 = temp[1:]
                 temp2 = ("".join("".join(temp2).split(" "))).split(",")
@@ -78,7 +79,6 @@ def corrInstruction(inst:str) -> str:
                 while(len(temp) != 1):
                         temp.pop()
                 temp.append(args)
-                
                 inst = " ".join(temp)
         return inst.lower()
 
@@ -90,8 +90,8 @@ def convert(inst:str, label:bool, index:int) -> str:
                 
                 else:
                         inst = inst.split(":")
-                        inst = " ".join(inst[1:])
-        
+                        inst = " ".join(inst[1:]).strip()
+
         inst = corrInstruction(inst)
         instType = checkType(inst)
 
@@ -245,8 +245,10 @@ def bType(inst:str) -> str:
         global pc
 
         opcode = "1100011"
-        elements = inst.replace(",", " ").lower().split()
+        elements = inst.split()
+
         if len(elements) != 4:
+                print("h")
                 raise ZeroDivisionError
 
         d_funct3 = {
@@ -260,6 +262,7 @@ def bType(inst:str) -> str:
 
         operation = elements[0]
         if operation not in d_funct3:
+                print("hh")
                 raise ZeroDivisionError
 
         funct3 = d_funct3[operation]
@@ -268,6 +271,7 @@ def bType(inst:str) -> str:
         rs2 = corr(elements[2])
 
         if rs1 not in registers or rs2 not in registers:
+                print("hhh")
                 raise ZeroDivisionError
         
         rs1 = registers.get(rs1)
@@ -278,11 +282,13 @@ def bType(inst:str) -> str:
         imm = corr(elements[3])
         if not imm.isnumeric():
                 if imm not in labels:
+                        print("hhhh")
                         raise ZeroDivisionError
                 val = int(labels[imm])
                 imm = 4*(val - pc)
         imm = int(imm)
         if imm%4 != 0 or imm > 2047 or imm < -2048:
+                print("hhhhh")
                 raise ZeroDivisionError
         
         imm_bin = format(imm & 0xffffffff, '012b')
@@ -420,7 +426,7 @@ def main():
         for i in range(len(instructions)):
                 binInstruction = ""
                 #instruction = instructions[i].strip("/r/n").lower()
-                instruction = "loop: "
+                instruction = "loop: bne t0,t1,update"
                 try:
                         isLabel = 0 if(":" not in instruction) else 1
                         binInstruction = convert(instruction, isLabel, pc)
