@@ -418,6 +418,7 @@ def main():
         
         #fh_write = open("", 'w')
         for i in range(len(instructions)):
+                binInstruction = ""
                 #instruction = instructions[i].strip("/r/n").lower()
                 instruction = instruction.lower() 
                 try:
