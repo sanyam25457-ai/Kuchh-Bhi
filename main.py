@@ -295,72 +295,43 @@ def bType(inst:str) -> str:
 
         return output
 
-def sType(inst:str) -> str:
-    global registers
+def sType(inst: str) -> str:
+	global registers
 
-    inst = inst.lower().split()
-    if len(inst) != 3 or inst[0] != "sw":
-        raise ZeroDivisionError
-    
-    rs2 = corr(inst[1])
-    temp = inst[2]
-    if "(" not in temp or ")" not in temp:
-        raise ZeroDivisionError
+	inst = inst.lower().split()
+	if len(inst) != 3 or inst[0] != "sw":
+		raise ZeroDivisionError
 
-    temp = temp.split("(")
-    if len(temp) != 2:
-        raise ZeroDivisionError
-    
-    imm = corr(temp[0])
-    rs1 = corr(temp[1].strip(")"))
+	rs2 = corr(inst[1])
+	temp = inst[2]
+	if "(" not in temp or ")" not in temp:
+		raise ZeroDivisionError
 
-    if rs1 not in registers or rs2 not in registers:
-        raise ZeroDivisionError
-    
-    rs1 = format(registers.get(rs1), "05b")
-    rs2 = format(registers.get(rs2), "05b")
+	# Corrected: split the memory operand, not the whole list
+	temp = temp.split("(")
+	if len(temp) != 2:
+		raise ZeroDivisionError
 
-    imm = int(imm)
-    if imm > 2047 or imm < -2048:
-        raise ZeroDivisionError
-    
-    imm = format(imm & 0xfff, "012b")
+	imm = corr(temp[0])
+	rs1 = corr(temp[1].strip(")"))
 
-    opcode = "0100011"
-    funct3 = "010"
+	if rs1 not in registers or rs2 not in registers:
+		raise ZeroDivisionError
 
-    binInst = imm[:7] + rs2 + rs1 + funct3 + imm[7:] + opcode
-    return binInst             
+	rs1 = format(registers.get(rs1), "05b")
+	rs2 = format(registers.get(rs2), "05b")
 
-def uType(inst:str) -> str:
-        global registers
+	imm = int(imm)
+	if imm > 2047 or imm < -2048:
+		raise ZeroDivisionError
 
-        inst = inst.split()
-        
-        if len(inst) != 3:
-                raise ZeroDivisionError
+	imm = format(imm & 0xfff, "012b")
 
-        binInst = ""
-        match(inst[0]):
-                case "lui":
-                        opcode = "0110111"
-                case "auipc":
-                        opcode = "0010111"
-                case _:
-                        raise ZeroDivisionError
-        
-        rd = corr(inst[1])
-        if rd not in registers:
-                raise ZeroDivisionError
-        
-        rd = registers.get(rd)        
-        rd = format(rd, "05b")
-        
-        imm = int(corr(inst[2]))
-        imm = format(imm & 0xfffff, "020b")
-        
-        binInst = imm + rd + opcode
-        return binInst
+	opcode = "0100011"
+	funct3 = "010"
+
+	binInst = imm[:7] + rs2 + rs1 + funct3 + imm[7:] + opcode
+	return binInst
 
 def jType(inst:str) -> str:
         global pc
