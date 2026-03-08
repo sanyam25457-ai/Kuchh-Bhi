@@ -1,21 +1,20 @@
 # 1. Use the following format for Instruction type overall
 #       Eg: "I" -> I-Type, etc.
 
-# 2. Call signExt() whenever you get an immediate
-#       Eg: imm = signExt(imm)
-
-# 3. All binary values need be read imm[2:]
+# 2. All binary values need be read imm[2:]
 #       Reason: Binary strings start wtih unneccesary "0b"
 
-# 4. Break instruction into words using .split()
+# 3. Break instruction into words using .split()
 
-# 5. For errors in any type raise ZeroDivisonError and catch it in main()
+# 4. For errors in any type raise ZeroDivisonError and catch it in main()
 
-# 6. Start all binary strings with "0b" followed by 0s and 1s to keep the format same overall.
+# 5. Start all binary strings with "0b" followed by 0s and 1s to keep the format same overall.
 
-#7. Call corr() to remove commas
+# 6. Call corr() to remove commas
 
-#8. Call register() to get hexcode of register if not already provided.
+# 7. Call register() to get hexcode of register if not already provided.
+
+import sys
 
 pc = 0
 
@@ -400,12 +399,11 @@ def corr(string:str) -> str:
         return string
         
 def main():
+        global pc #program counter
+        global labels #dictionary
 
         binInst = []
-        global pc
-        global labels
-
-        import sys
+        
         input_file = sys.argv[1]
         machine_out = sys.argv[2]
         optional_out = sys.argv[3] if (len(sys.argv) > 3) else None
