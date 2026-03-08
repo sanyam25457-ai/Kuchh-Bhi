@@ -400,6 +400,8 @@ def corr(string:str) -> str:
         return string
         
 def main():
+
+        binInst = []
         global pc
         global labels
 
@@ -421,8 +423,6 @@ def main():
                 label = instruc.split(":")[0]
                 labels[label] = tempIndex            
         
-        
-        fh_write = open(machine_out, 'w')
         for i in range(len(instructions)):
                 binInstruction = ""
                 instruction = instructions[i].strip("/r/n").lower()
@@ -430,16 +430,21 @@ def main():
                 try:
                         isLabel = 0 if(":" not in instruction) else 1
                         binInstruction = convert(instruction, isLabel, pc)
-                        print(binInstruction)
+                        binInst.append(binInstruction)
                         pc += 1
-                        fh_write.write(binInstruction)
-                        fh_write.write("\n")
-                        fh_write.flush()
+
                 
                 except ZeroDivisionError:
                         print("You encountered an error on line", i)
                         break
-        fh_write.close()
+        
+        if ("00000000000000000000000001100011" in binInst):
+                with open(machine_out, "w") as fh_write:
+                        fh_write.writelines(binInst)
+                
+        else:
+                print("No Virtual Halt Statement found")
+                
 #Please remove pass after the function has been built
 if __name__ == "__main__":
         main()
