@@ -435,7 +435,7 @@ def main():
 
                 
                 except ZeroDivisionError:
-                        print("You encountered an error on line", i)
+                        print("You encountered an error on line", i + 1)
                         break
         else:
 
