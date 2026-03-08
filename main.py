@@ -439,15 +439,18 @@ def main():
                         break
         else:
 
-            if ("00000000000000000000000001100011" in binInst):
-                    with open(machine_out, "w") as fh_write:
-                            for i in binInst:
-                                    fh_write.write(i)
-                                    fh_write.write("\n")
-                                    fh_write.flush()
+                if ("00000000000000000000000001100011" == binInst[-1]):
+                        with open(machine_out, "w") as fh_write:
+                                for i in binInst:
+                                        fh_write.write(i)
+                                        fh_write.write("\n")
+                                        fh_write.flush()
 
-            else:
-                    print("No Virtual Halt statement found")
+                elif "00000000000000000000000001100011" in binInst:
+                        print("Virtual Halt statement not the final statement")
+        
+                else:
+                        print("No Virtual Halt statement found")
         
 #Please remove pass after the function has been built
 if __name__ == "__main__":
