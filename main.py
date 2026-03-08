@@ -84,7 +84,7 @@ def convert(inst:str, label:bool, index:int) -> str:
 
         if label:
                 if inst.strip()[-1] == ":":
-                        return
+                        return ""
                 
                 else:
                         inst = inst.split(":")
@@ -380,7 +380,7 @@ def jType(inst:str) -> str:
                         raise ZeroDivisionError
                 
                 offset = 2*(labels.get(imm) - pc)
-                imm = format(offset & 0xffffffff, "020b")
+                imm = format(offset & 0xfffff, "020b")
         
         else:
                 imm = int(imm)
