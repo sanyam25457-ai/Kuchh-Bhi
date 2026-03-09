@@ -16,6 +16,22 @@
 
 import sys
 
+errors = {
+        "args" : 0,
+        "op" : 0,
+        "reg" : 0,
+        "imm" : 0,
+        "label" : 0
+}
+
+errMSG = {
+        "args" : "Insufficient/Incorrect argument type/syntax",
+        "op" : "Operation not supported",
+        "reg" : "No register mentioned exists",
+        "imm" : "Too large/small or non numeric immediate value passed",
+        "label" : "No such label exists"
+}
+
 pc = 0
 
 instructions = {
@@ -66,6 +82,12 @@ registers = {
 
 labels = {}
 
+def resetErrors():
+        global errors
+
+        for i in errors:
+                errors[i] = 0
+
 def corrInstruction(inst:str) -> str:
         temp = list(inst.partition(" "))
         if "," in temp[2].strip(","):
@@ -107,6 +129,7 @@ def convert(inst:str, label:bool, index:int) -> str:
                 case "J":
                         binInst = jType(inst)
                 case _:
+                        errors["op"] = 1
                         raise ZeroDivisionError
         return binInst
 
@@ -117,7 +140,7 @@ def checkType(inst:str)->str:
         temp = inst[0]
         if temp in instructions:
                 return instructions.get(temp)
-        
+        errors["op"] = 1
         raise ZeroDivisionError       
 
 def rType(inst:str) -> str:
@@ -126,6 +149,7 @@ def rType(inst:str) -> str:
         inst = inst.split()
         
         if len(inst) != 4:
+                errors["args"] = 1
                 raise ZeroDivisionError
         
         match (inst[0].lower()):
@@ -157,6 +181,7 @@ def rType(inst:str) -> str:
                         funct7 = "0000000"
                         funct3 = "111"
                 case _:
+                        errors["args"] = 1
                         raise ZeroDivisionError
 
 
@@ -165,6 +190,7 @@ def rType(inst:str) -> str:
         rs2 = corr(inst[3])
 
         if rd not in registers or rs1 not in registers or rs2 not in registers:
+                errors["reg"] = 1
                 raise ZeroDivisionError
         
         rd = registers.get(rd)
@@ -176,7 +202,9 @@ def rType(inst:str) -> str:
 
         opcode = "0110011"
 
-        binInst = funct7 + rs2 +rs1 + funct3 + rd + opcode        
+        binInst = funct7 + rs2 +rs1 + funct3 + rd + opcode
+        if len(binInst) > 32:
+                raise ZeroDivisionError       
         return binInst
 
 def iType(inst:str) -> str:
@@ -199,16 +227,19 @@ def iType(inst:str) -> str:
                         opcode = "1100111"
                         funct3 = "000"
                 case _:
+                        errors["op"] = 1
                         raise ZeroDivisionError
                 
         rd = corr(inst[1])
         if rd not in registers:
+                errors["reg"] = 1
                 raise ZeroDivisionError
 
         rd = format(registers.get(rd),"05b")
 
         if (opcode == "0010011") or (opcode == "1100111"):
                 if(len(inst) != 4):
+                        errors["args"] = 1
                         raise ZeroDivisionError
                 rs = corr(inst[2])
                 imm = corr(inst[3])
@@ -216,6 +247,7 @@ def iType(inst:str) -> str:
         else:
                 temp = inst[2].split("(")
                 if len(temp) != 2:
+                        errors["args"] = 1
                         raise ZeroDivisionError
                 
                 temp[1] = temp[1].rstrip(")")
@@ -223,29 +255,33 @@ def iType(inst:str) -> str:
                 rs = corr(temp[1])
 
         if rs not in registers:
+                errors["op"] = 1
                 raise ZeroDivisionError
         
         rs = format(registers.get(rs),"05b")
         
         if not imm.lstrip("-").isnumeric() or int(imm) > 2047 or int(imm) < -2048:
+                errors["imm"] = 1
                 raise ZeroDivisionError
         else:
                 imm = int(imm)
                 imm = format(imm & 0xfff, "012b")
-                        
-        
+                         
         binInst = imm + rs + funct3 + rd + opcode
+        if len(binInst) > 32:
+                raise ZeroDivisionError  
         return binInst        
 
 def bType(inst:str) -> str:
         global labels
         global registers
         global pc
-
+        binInst = ""
         opcode = "1100011"
         elements = inst.split()
 
         if len(elements) != 4:
+                errors["args"] = 1
                 raise ZeroDivisionError
 
         d_funct3 = {
@@ -259,6 +295,7 @@ def bType(inst:str) -> str:
 
         operation = elements[0]
         if operation not in d_funct3:
+                errors["op"] = 1
                 raise ZeroDivisionError
 
         funct3 = d_funct3[operation]
@@ -267,6 +304,7 @@ def bType(inst:str) -> str:
         rs2 = corr(elements[2])
 
         if rs1 not in registers or rs2 not in registers:
+                errors["reg"] = 1
                 raise ZeroDivisionError
         
         rs1 = registers.get(rs1)
@@ -277,12 +315,19 @@ def bType(inst:str) -> str:
         imm = corr(elements[3])
         if not imm.isnumeric():
                 if imm not in labels:
+                        errors["label"] = 1
                         raise ZeroDivisionError
                 val = int(labels[imm])
                 imm = 2*(val - pc)
         else:
-                imm=int(imm)
+                try:
+                        imm = int(imm)
+                except ValueError:
+                        errors["imm"] = 1
+                        raise ZeroDivisionError
+                
                 if imm%4 != 0 or imm > 2047 or imm < -2048:
+                        errors["imm"] = 1
                         raise ZeroDivisionError
         
         imm_bin = format(imm & 0xfff, '012b')
@@ -291,45 +336,63 @@ def bType(inst:str) -> str:
         imm_4_1 = imm_bin[8:]
         imm_11 = imm_bin[1]
 
-        output = imm_12 + imm_10_5 + rs2 + rs1 + funct3 + imm_4_1 + imm_11 + opcode
+        binInst = imm_12 + imm_10_5 + rs2 + rs1 + funct3 + imm_4_1 + imm_11 + opcode
+        if len(binInst) > 32:
+                raise ZeroDivisionError   
+        return binInst
 
-        return output
 def sType(inst: str) -> str:
-	global registers
+        global registers
 
-	inst = inst.lower().split()
-	if len(inst) != 3 or inst[0] != "sw":
-		raise ZeroDivisionError
+        inst = inst.lower().split()
+        if len(inst) != 3:
+                errors["args"] = 1
+                raise ZeroDivisionError
+        
+        if inst[0] != "sw":
+                errors["op"] = 1
+                raise ZeroDivisionError
 
-	rs2 = corr(inst[1])
-	temp = inst[2]
-	if "(" not in temp or ")" not in temp:
-		raise ZeroDivisionError
+        rs2 = corr(inst[1])
+        temp = inst[2]
+        if "(" not in temp or ")" not in temp:
+                errors["args"] = 1
+                raise ZeroDivisionError
 
-	temp = temp.split("(")
-	if len(temp) != 2:
-		raise ZeroDivisionError
+        temp = temp.split("(")
+        if len(temp) != 2:
+                errors["args"] = 1
+                raise ZeroDivisionError
 
-	imm = corr(temp[0])
-	rs1 = corr(temp[1].strip(")"))
+        imm = corr(temp[0])
+        rs1 = corr(temp[1].strip(")"))
 
-	if rs1 not in registers or rs2 not in registers:
-		raise ZeroDivisionError
+        if rs1 not in registers or rs2 not in registers:
+                errors["reg"] = 1
+                raise ZeroDivisionError
+        
+        rs1 = format(registers.get(rs1), "05b")
+        rs2 = format(registers.get(rs2), "05b")
+        
+        try:
+                imm = int(imm)
+        except ValueError:
+                errors["imm"] = 1
+                raise ZeroDivisionError
 
-	rs1 = format(registers.get(rs1), "05b")
-	rs2 = format(registers.get(rs2), "05b")
+        if imm > 2047 or imm < -2048:
+                errors["imm"] = 1
+                raise ZeroDivisionError
 
-	imm = int(imm)
-	if imm > 2047 or imm < -2048:
-		raise ZeroDivisionError
+        imm = format(imm & 0xfff, "012b")
 
-	imm = format(imm & 0xfff, "012b")
+        opcode = "0100011"
+        funct3 = "010"
 
-	opcode = "0100011"
-	funct3 = "010"
-
-	binInst = imm[:7] + rs2 + rs1 + funct3 + imm[7:] + opcode
-	return binInst
+        binInst = imm[:7] + rs2 + rs1 + funct3 + imm[7:] + opcode
+        if len(binInst) > 32:
+                raise ZeroDivisionError   
+        return binInst
 
 def uType(inst:str) -> str:
         global registers
@@ -337,6 +400,7 @@ def uType(inst:str) -> str:
         inst = inst.split()
         
         if len(inst) != 3:
+                errors["args"] = 1
                 raise ZeroDivisionError
 
         binInst = ""
@@ -346,19 +410,28 @@ def uType(inst:str) -> str:
                 case "auipc":
                         opcode = "0010111"
                 case _:
+                        errors["op"] = 1
                         raise ZeroDivisionError
         
         rd = corr(inst[1])
         if rd not in registers:
+                errors["reg"] = 1
                 raise ZeroDivisionError
         
         rd = registers.get(rd)        
         rd = format(rd, "05b")
         
-        imm = int(corr(inst[2]))
+        try:
+                imm = int(corr(inst[2]))
+        except ValueError:
+                errors["imm"] = 1
+                raise ZeroDivisionError
+        
         imm = format(imm & 0xfffff, "020b")
         
         binInst = imm + rd + opcode
+        if len(binInst) > 32:
+                raise ZeroDivisionError   
         return binInst
 
 def jType(inst:str) -> str:
@@ -372,11 +445,14 @@ def jType(inst:str) -> str:
         imm = corr(inst[2])
 
         if rd not in registers:
+                errors["reg"] = 1
                 raise ZeroDivisionError
-        rd=registers.get(rd)
-        rd=format(rd,"05b")
+        rd = registers.get(rd)
+        rd = format(rd,"05b")
+
         if not imm.strip().strip("-").isnumeric():
                 if imm not in labels:
+                        errors["label"] = 1
                         raise ZeroDivisionError
                 
                 offset = 2*(labels.get(imm) - pc)
@@ -385,11 +461,14 @@ def jType(inst:str) -> str:
         else:
                 imm = int(imm)
                 if imm%4 != 0 or imm > (2**19)-1 or imm < -(2**19):
+                        errors["imm"] = 1
                         raise ZeroDivisionError
                 
                 imm = format(imm & 0xfffff, "020b")
 
         binInst = imm[0] + imm[-10:] + imm[1] + imm[2:-10] + rd + opcode
+        if len(binInst) > 32:
+                raise ZeroDivisionError   
         return binInst
 
 def corr(string:str) -> str:
@@ -434,6 +513,14 @@ def main():
                 
                 except ZeroDivisionError:
                         print("You encountered an error on line", i + 1)
+                        err = ""
+                        for i in errors:
+                                if errors[i] == 1:
+                                        err = i
+                                        break
+                        if err != "":
+                                print("Error Message:", errMSG[err])
+                                resetErrors()
                         break
         else:
 
@@ -453,4 +540,3 @@ def main():
 #Please remove pass after the function has been built
 if __name__ == "__main__":
         main()
-
