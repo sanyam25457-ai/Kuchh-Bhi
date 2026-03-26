@@ -8,6 +8,23 @@
 
 #4. Check for errors and raise ZeroDivisionError, whenever an error is encountered.
 
+#5. Every binary string will go through the execute() function and be called respectively if no general errors
+#   are found.
+
+#6. Always update register state using the registerStates dictionary.
+
+#7. For any jump or branch instructions update the pc (after saving the next pc in required jump instructions).
+
+#8. Update corresponding memory by accessing dictionary of memStates.
+
+#9. After getting the memory to update from binary string, use memory() function to get the key of the
+#   corresponding memory in the memStates dictionary.
+
+pc = 4 #PC is always updated by +4
+
+errors = {}
+
+errMSG = {}
 
 opcodes = {
         "0110011" : "R",
@@ -21,8 +38,99 @@ opcodes = {
         "1101111" : "J"
 }
 
+regStates = {
+        0 :  0,
+        1 :  0,
+        2 :  0,
+        3 :  0,
+        4 :  0,
+        5 :  0,
+        6 :  0,
+        7 :  0,
+        8 :  0,
+        9 :  0,
+        10 : 0,
+        11 : 0,
+        12 : 0,
+        13 : 0,
+        14 : 0,
+        15 : 0,
+        16 : 0,
+        17 : 0,
+        18 : 0,
+        19 : 0,
+        20 : 0,
+        21 : 0,
+        22 : 0,
+        23 : 0,
+        24 : 0,
+        25 : 0,
+        26 : 0,
+        27 : 0,
+        28 : 0,
+        29 : 0,
+        30 : 0,
+        31 : 0,
 
+}
 
+memStates = {
+        "0x00010000" : 0,
+        "0x00010004" : 0,
+        "0x00010008" : 0,
+        "0x0001000C" : 0,
+        "0x00010010" : 0,
+        "0x00010014" : 0,
+        "0x00010018" : 0,
+        "0x0001001C" : 0,
+        "0x00010020" : 0,
+        "0x00010024" : 0,
+        "0x00010028" : 0,
+        "0x0001002C" : 0,
+        "0x00010030" : 0,
+        "0x00010034" : 0,
+        "0x00010038" : 0,
+        "0x0001003C" : 0,
+        "0x00010040" : 0,
+        "0x00010044" : 0,
+        "0x00010048" : 0,
+        "0x0001004C" : 0,
+        "0x00010050" : 0,
+        "0x00010054" : 0,
+        "0x00010058" : 0,
+        "0x0001005C" : 0,
+        "0x00010060" : 0,
+        "0x00010064" : 0,
+        "0x00010068" : 0,
+        "0x0001006C" : 0,
+        "0x00010070" : 0,
+        "0x00010074" : 0,
+        "0x00010078" : 0,
+        "0x0001007C" : 0
+}
+
+def execute(binString:str):
+        if len(binString) > 32:
+                raise ZeroDivisionError
+        opcode = binString[-7:]
+        funcType = opcodes.get(opcode)
+
+        match(funcType):
+                case "R":
+                        RType(binString)
+                case "I":
+                        IType(binString)
+                case "S":
+                        SType(binString)
+                case "B":
+                        BType(binString)
+                case "U":
+                        UType(binString)
+                case "J":
+                        JType(binString)
+                case _:
+                        raise ZeroDivisionError
+                
 def signExt(binString:str, funcType:str) -> str:
         """
         #Isolate the immediate bits put them in CORRECT ORDER and then pass it as an argument as string.
@@ -55,26 +163,59 @@ def signExt(binString:str, funcType:str) -> str:
 
         return result_imm
 
-def Rtype():
+def memory(memInt:int) -> str:        
+        mem = "0x" + format(memInt, "08x").upper()
+        if mem not in memStates:
+                raise ZeroDivisionError
+        return mem
+
+def RType():
+        global pc
+        global regStates
+        global regStates
+
         pass
 
-def Itype():
+def IType():
+        global pc
+        global regStates
+        global memStates
+        
         pass
 
-def Stype():
+def SType():
+        global pc
+        global regStates
+        global memStates
+        
         pass
 
-def Btype():
+def BType():
+        global pc
+        global regStates
+        global memStates
+        
         pass
 
-def Utype():
+def UType():
+        global pc
+        global regStates
+        global memStates
+        
         pass
 
-def Jtype():
+def JType():
+        global pc
+        global regStates
+        global memStates
+        
+        pass
+
+def writeRegStates(): #this function will write onto a list and the list will be appended to a list (2D List)
         pass
 
 def main():
-        return
+        pass
 
 # remove pass after function is created
 if __name__ == "__main__":
