@@ -30,9 +30,9 @@ def signExt(binString:str, funcType:str) -> str:
 
         return result_imm
 
-def main(){
+def main():
         return
-}
+
 
 if __name__ == "__main__":
         main()
