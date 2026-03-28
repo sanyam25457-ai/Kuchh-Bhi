@@ -25,8 +25,9 @@
 
 from io import TextIOWrapper
 
+traceList = []
 
-pc = 4 #PC is always updated by +4
+pc = 0 #PC is always updated by +4
 
 instructions=[]
 
@@ -139,7 +140,7 @@ def execute(binString:str):
                 case _:
                         raise ZeroDivisionError
                 
-def signExt(binString:str, funcType:str) -> str:
+def signExt(immString:str, funcType:str) -> str:
         """
         #Isolate the immediate bits put them in CORRECT ORDER and then pass it as an argument as string.
         
@@ -149,22 +150,18 @@ def signExt(binString:str, funcType:str) -> str:
 """
         result_imm = ""
         
-        
-        if(funcType.upper() == "R"):
-                raise ValueError
-        
-        elif(funcType.upper() == "I" or funcType.upper() == "S"):
-                result_imm = "0b" + (20*binString[2]) + binString[2:]
+        if(funcType.upper() == "I" or funcType.upper() == "S"):
+                result_imm = (21*immString[0]) + immString[1:]
 
         
         elif(funcType.upper() == "B"):
-                result_imm = "0b" + (19*binString[2]) + binString[2:] + "0"
+                result_imm = (19*immString[0]) + immString[1:] + "0"
 
         elif(funcType.upper() == "U"):
-                result_imm = binString + (12*"0")
+                result_imm = immString + (12*"0")
         
         elif(funcType.upper() == "J"):
-                result_imm = "0b" + (12*binString[2]) + binString[3:] + "0"
+                result_imm = (12*immString[0]) + immString[1:] + "0"
 
         else:
                 raise ZeroDivisionError
@@ -177,7 +174,7 @@ def memory(memInt:int) -> str:
                 raise ZeroDivisionError
         return mem
 
-def RType():
+def RType(binString:str):
         global pc
         global regStates
         global regStates
@@ -193,7 +190,7 @@ def IType(binString:str):
 
         funct3 = binString[-15:-12]
         opcode = binString[-7:]
-        imm = signExt(binString[-32:-20])
+        imm = signExt(binString[-32:-20], "I")
         rs1 = binString[-20:-15]
         rd = binString[-12:-7]
 
@@ -204,22 +201,22 @@ def IType(binString:str):
                 raise ZeroDivisionError
 
         if opcode == "0000011" and funct3 == "010":
-                inst = "lw"
+                operation = "lw"
         elif opcode == "0010011" and funct3 == "000":
-                inst = "addi"
+                operation = "addi"
         elif opcode == "0010011" and funct3 == "011":
-                inst = "sltiu"
+                operation = "sltiu"
         elif opcode == "1100111" and funct3 == "000":
-                inst = "jalr"
+                operation = "jalr"
         else:
                 raise ZeroDivisionError
         
-        match inst :
+        match operation:
                 case "addi":
                         if rd == 0:
                                 return
                         
-                        num1 = int(imm, 2) if (imm[2] == "0") else int(imm, 2) - (2**32)
+                        num1 = int(imm, 2) if (imm[0] == "0") else int(imm, 2) - (2**32)
                         num2 = regStates.get(rs1)
                         sum = num1 + num2
                         sum = format(sum & 0xFFFFFFFF, "032b")
@@ -240,7 +237,7 @@ def IType(binString:str):
                                 return
                         
                         val = regStates.get(rs1)
-                        offset = int(imm,2) if (imm[2] == "0") else int(imm, 2) - (2**32)
+                        offset = int(imm,2) if (imm[0] == "0") else int(imm, 2) - (2**32)
                         mem_add = memory(val+offset)
                         valrd = memStates.get(mem_add)
                         regStates[rd] = valrd
@@ -248,7 +245,7 @@ def IType(binString:str):
                 case "jalr":
                         regStates[rd] = pc + 4 if (rd!=0) else 0
                         val = regStates.get(rs1)
-                        offset = int(imm,2) if (imm[2]=="0") else int(imm,2) - (2**32)
+                        offset = int(imm,2) if (imm[0]=="0") else int(imm,2) - (2**32)
                         
                         new_pc = val + offset
                         new_pc = new_pc & 0xFFFFFFFE
@@ -265,7 +262,10 @@ def IType(binString:str):
         return
 
 
-def SType(binstring : str):
+
+
+def SType(binstring:str):
+
         global pc
         global regStates
         global memStates
@@ -312,7 +312,7 @@ def SType(binstring : str):
         memStates[memory_]=val2
         
 
-def BType():
+def BType(binString:str):
         global pc
         global regStates
         global memStates
@@ -320,7 +320,43 @@ def BType():
         
         pass
 
-def UType():
+def UType(binString:str):
+        global pc
+        global regStates
+        global memStates
+        global instructions
+        
+        if binString[-12:-7] == "00000":
+                return
+        
+        opcode = binString[-7:]
+        
+        match opcode:
+                case "0110111":
+                        rd = binString[-12:-7]
+                        imm = binString[:-12]
+                        temp = int(imm, 2)
+                        if temp > 524287:
+                                raise ZeroDivisionError
+
+                        imm = signExt(imm, "U")
+                        imm = int(imm, 2) if (imm[0] == "0") else int(imm, 2) - (2**32)
+                        rd = int(rd, 2)
+                        
+                        if rd not in regStates:
+                                raise ZeroDivisionError
+
+                        regStates[rd] = imm
+
+
+                case "0010111":
+                        pass
+                case _:
+                        raise ZeroDivisionError
+        
+
+
+def JType(binString:str):
         global pc
         global regStates
         global memStates
@@ -328,41 +364,38 @@ def UType():
         
         pass
 
-def JType():
-        global pc
+def writeRegStates(): #this function will write onto a list
         global regStates
-        global memStates
-        global instructions
+        global pc
+        trace = ""
         
-        pass
-
-def writeRegStates(fileHandler:TextIOWrapper): #this function will write onto a list and the list will be appended to a list (2D List)
-        global regStates
-        global pc
-
         pcValue = format(pc, "032b") + " "
-        fileHandler.write(pcValue)
-        
+        trace += pcValue
+
         regValue = ""
         for i in range(32):
-                regValue = format(regStates.get[i], "032b")
-                fileHandler.write(regValue + " ")
-        
-        fileHandler.write("\n")
+                regValue = format(regStates.get(i) & 0xFFFFFFFF, "032b")
+                trace += regValue + " "
+        traceList.append(trace)
 
-def writeMemStates(fileHandler:TextIOWrapper):
+def writeMemStates():
         global memStates
+        global traceList
 
         memValue = ""
         for i in sorted(memStates.keys()):
-                memValue = format(memStates.get[i], "032b")
-                fileHandler.write(i + ":" + memValue + "\n")
+                memValue = format(memStates.get(i) & 0xFFFFFFFF, "032b")
+                traceList.append(i + ":" + memValue)
 
 def main():
         """
         1. Have an index variable which always computes pc//4 in the while loop
+            1a. pc increments by 4 every iteration of the while loop.
         2. Check for last instruction to be halt, if not exit with error
+            2a. If halt encountered exit loop.
         3. Do things.
+        4. Write traceList (and \n) after no errors and halt has been encountered.
+
         """
         pass
 
