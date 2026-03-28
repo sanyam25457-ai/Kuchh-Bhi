@@ -22,6 +22,8 @@
 
 pc = 4 #PC is always updated by +4
 
+instructions=[]
+
 errors = {}
 
 errMSG = {}
@@ -164,7 +166,7 @@ def signExt(binString:str, funcType:str) -> str:
         return result_imm
 
 def memory(memInt:int) -> str:        
-        mem = "0x" + format(memInt, "08x").upper()
+        mem = "0x" + format((memInt & 0xFFFFFFFF), "08x").upper()
         if mem not in memStates:
                 raise ZeroDivisionError
         return mem
@@ -180,6 +182,7 @@ def IType(binString:str):
         global pc
         global regStates
         global memStates
+        global instructions
 
         funct3=binString[-15:-12]
         opcode=binString[-7:]
@@ -189,6 +192,9 @@ def IType(binString:str):
 
         intrs1=int(rs1,2)
         intrd=int(rd,2)
+
+        if(intrd not in regStates or intrs1 not in regStates):
+                raise ZeroDivisionError
 
         if opcode=="0000011"and funct3=="010":
                 instn="lw"
@@ -201,17 +207,50 @@ def IType(binString:str):
         else:
                 raise ZeroDivisionError
         
-        if instn=="addi":
-                num1=int(imm,2)
-                num2=regStates.get(intrs1)
-                sum=bin(num1+num2)
-                valrd=int(sum[-32:],2)
-                regStates[intrd]=valrd
-        elif instn=="sltiu":
-                num1=int(imm,2)
-                num2=reg
-                
+        match instn:
+                case "addi":
+                        if(intrd==0):
+                                return
+                        num1=int(imm,2) if imm[2]=="0" else int(imm,2)-2**32
+                        num2=regStates.get(intrs1)
+                        sum=num1+num2
+                        sum=format(sum & 0xFFFFFFFF,"032b")
+                        valrd=int(sum[-32:],2)
+                        regStates[intrd]=valrd
 
+                case "sltiu":
+                        if intrd==0:
+                                return
+                        num1=int(imm,2)
+                        num2=regStates.get(intrs1) & 0xFFFFFFFF
+                        valrd=1 if num2<(num1) else 0
+                        regStates[intrd]=valrd
+                
+                case "lw":
+                        if intrd==0:
+                                return
+                        val=regStates.get(intrs1)
+                        offset=int(imm,2) if imm[2]=="0" else int(imm,2)-2**32
+                        mem_add=memory(val+offset)
+                        if mem_add not in memStates:
+                                raise ZeroDivisionError
+                        valrd=memStates.get(mem_add)
+                        regStates[intrd]=valrd
+                
+                case "jalr":
+                        regStates[intrd]=pc+4 if intrd!=0 else 0
+                        val=regStates.get(intrs1)
+                        offset=int(imm,2) if imm[2]=="0" else int(imm,2)-2**32
+                        new_pc=val+offset
+                        new_pc=new_pc & 0xFFFFFFFE
+                        new_pc= new_pc & 0xFFFFFFFF
+                        if(new_pc//4 >= len(instructions)):
+                                raise ZeroDivisionError
+                        else:
+                                pc=new_pc
+                
+                case _:
+                        raise ZeroDivisionError
 
 
 def SType():
