@@ -215,7 +215,7 @@ def IType(binString:str):
                         num2=regStates.get(intrs1)
                         sum=num1+num2
                         sum=format(sum & 0xFFFFFFFF,"032b")
-                        valrd=int(sum[-32:],2)
+                        valrd=int(sum[-32:],2) if sum[-32]=="0" else int(sum[-32:],2)-2**32
                         regStates[intrd]=valrd
 
                 case "sltiu":
