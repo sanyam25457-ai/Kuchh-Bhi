@@ -176,12 +176,43 @@ def RType():
 
         pass
 
-def IType():
+def IType(binString:str):
         global pc
         global regStates
         global memStates
+
+        funct3=binString[-15:-12]
+        opcode=binString[-7:]
+        imm=signExt("0b"+binString[-32:-20])
+        rs1=binString[-20:-15]
+        rd=binString[-12:-7]
+
+        intrs1=int(rs1,2)
+        intrd=int(rd,2)
+
+        if opcode=="0000011"and funct3=="010":
+                instn="lw"
+        elif opcode=="0010011" and funct3=="000":
+                instn="addi"
+        elif opcode=="0010011" and funct3=="011":
+                instn="sltiu"
+        elif opcode=="1100111" and funct3=="000":
+                instn="jalr"
+        else:
+                raise ZeroDivisionError
         
-        pass
+        if instn=="addi":
+                num1=int(imm,2)
+                num2=regStates.get(intrs1)
+                sum=bin(num1+num2)
+                valrd=int(sum[-32:],2)
+                regStates[intrd]=valrd
+        elif instn=="sltiu":
+                num1=int(imm,2)
+                num2=reg
+                
+
+
 
 def SType():
         global pc
