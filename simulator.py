@@ -20,6 +20,12 @@
 #9. After getting the memory to update from binary string, use memory() function to get the key of the
 #   corresponding memory in the memStates dictionary.
 
+#10. Always check if register 0 is being updated. If x0 is the destination register do nothing.
+
+
+from io import TextIOWrapper
+
+
 pc = 4 #PC is always updated by +4
 
 instructions=[]
@@ -175,6 +181,7 @@ def RType():
         global pc
         global regStates
         global regStates
+        global instructions
 
         pass
 
@@ -184,79 +191,85 @@ def IType(binString:str):
         global memStates
         global instructions
 
-        funct3=binString[-15:-12]
-        opcode=binString[-7:]
-        imm=signExt("0b"+binString[-32:-20])
-        rs1=binString[-20:-15]
-        rd=binString[-12:-7]
+        funct3 = binString[-15:-12]
+        opcode = binString[-7:]
+        imm = signExt(binString[-32:-20])
+        rs1 = binString[-20:-15]
+        rd = binString[-12:-7]
 
-        intrs1=int(rs1,2)
-        intrd=int(rd,2)
+        rs1 = int(rs1,2)
+        rd = int(rd,2)
 
-        if(intrd not in regStates or intrs1 not in regStates):
+        if(rd not in regStates or rs1 not in regStates):
                 raise ZeroDivisionError
 
-        if opcode=="0000011"and funct3=="010":
-                instn="lw"
-        elif opcode=="0010011" and funct3=="000":
-                instn="addi"
-        elif opcode=="0010011" and funct3=="011":
-                instn="sltiu"
-        elif opcode=="1100111" and funct3=="000":
-                instn="jalr"
+        if opcode == "0000011" and funct3 == "010":
+                inst = "lw"
+        elif opcode == "0010011" and funct3 == "000":
+                inst = "addi"
+        elif opcode == "0010011" and funct3 == "011":
+                inst = "sltiu"
+        elif opcode == "1100111" and funct3 == "000":
+                inst = "jalr"
         else:
                 raise ZeroDivisionError
         
-        match instn:
+        match inst :
                 case "addi":
-                        if(intrd==0):
+                        if rd == 0:
                                 return
-                        num1=int(imm,2) if imm[2]=="0" else int(imm,2)-2**32
-                        num2=regStates.get(intrs1)
-                        sum=num1+num2
-                        sum=format(sum & 0xFFFFFFFF,"032b")
-                        valrd=int(sum[-32:],2) if sum[-32]=="0" else int(sum[-32:],2)-2**32
-                        regStates[intrd]=valrd
+                        
+                        num1 = int(imm, 2) if (imm[2] == "0") else int(imm, 2) - (2**32)
+                        num2 = regStates.get(rs1)
+                        sum = num1 + num2
+                        sum = format(sum & 0xFFFFFFFF, "032b")
+                        valrd = int(sum[-32:], 2) if (sum[-32] == "0") else int(sum[-32:], 2) - (2**32)
+                        regStates[rd] = valrd
 
                 case "sltiu":
-                        if intrd==0:
+                        if rd == 0:
                                 return
-                        num1=int(imm,2)
-                        num2=regStates.get(intrs1) & 0xFFFFFFFF
-                        valrd=1 if num2<(num1) else 0
-                        regStates[intrd]=valrd
+                        
+                        num1 = int(imm, 2)
+                        num2 = regStates.get(rs1) & 0xFFFFFFFF
+                        valrd = 1 if num2 < (num1) else 0
+                        regStates[rd] = valrd
                 
                 case "lw":
-                        if intrd==0:
+                        if rd == 0:
                                 return
-                        val=regStates.get(intrs1)
-                        offset=int(imm,2) if imm[2]=="0" else int(imm,2)-2**32
-                        mem_add=memory(val+offset)
-                        if mem_add not in memStates:
-                                raise ZeroDivisionError
-                        valrd=memStates.get(mem_add)
-                        regStates[intrd]=valrd
+                        
+                        val = regStates.get(rs1)
+                        offset = int(imm,2) if (imm[2] == "0") else int(imm, 2) - (2**32)
+                        mem_add = memory(val+offset)
+                        valrd = memStates.get(mem_add)
+                        regStates[rd] = valrd
                 
                 case "jalr":
-                        regStates[intrd]=pc+4 if intrd!=0 else 0
-                        val=regStates.get(intrs1)
-                        offset=int(imm,2) if imm[2]=="0" else int(imm,2)-2**32
-                        new_pc=val+offset
-                        new_pc=new_pc & 0xFFFFFFFE
+                        regStates[rd] = pc + 4 if (rd!=0) else 0
+                        val = regStates.get(rs1)
+                        offset = int(imm,2) if (imm[2]=="0") else int(imm,2) - (2**32)
+                        
+                        new_pc = val + offset
+                        new_pc = new_pc & 0xFFFFFFFE
                         new_pc= new_pc & 0xFFFFFFFF
-                        if(new_pc//4 >= len(instructions)):
+                        
+                        if(new_pc // 4 >= len(instructions)):
                                 raise ZeroDivisionError
                         else:
-                                pc=new_pc
+                                pc = new_pc
                 
                 case _:
                         raise ZeroDivisionError
+                
+        return
 
 
 def SType():
         global pc
         global regStates
         global memStates
+        global instructions
         
         pass
 
@@ -264,6 +277,7 @@ def BType():
         global pc
         global regStates
         global memStates
+        global instructions
         
         pass
 
@@ -271,6 +285,7 @@ def UType():
         global pc
         global regStates
         global memStates
+        global instructions
         
         pass
 
@@ -278,13 +293,38 @@ def JType():
         global pc
         global regStates
         global memStates
+        global instructions
         
         pass
 
-def writeRegStates(): #this function will write onto a list and the list will be appended to a list (2D List)
-        pass
+def writeRegStates(fileHandler:TextIOWrapper): #this function will write onto a list and the list will be appended to a list (2D List)
+        global regStates
+        global pc
+
+        pcValue = format(pc, "032b") + " "
+        fileHandler.write(pcValue)
+        
+        regValue = ""
+        for i in range(32):
+                regValue = format(regStates.get[i], "032b")
+                fileHandler.write(regValue + " ")
+        
+        fileHandler.write("\n")
+
+def writeMemStates(fileHandler:TextIOWrapper):
+        global memStates
+
+        memValue = ""
+        for i in sorted(memStates.keys()):
+                memValue = format(memStates.get[i], "032b")
+                fileHandler.write(i + ":" + memValue + "\n")
 
 def main():
+        """
+        1. Have an index variable which always computes pc//4 in the while loop
+        2. Check for last instruction to be halt, if not exit with error
+        3. Do things.
+        """
         pass
 
 # remove pass after function is created
