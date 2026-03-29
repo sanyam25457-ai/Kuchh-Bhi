@@ -168,7 +168,10 @@ def signExt(immString:str, funcType:str) -> str:
 
         return result_imm
 
-def memory(memInt:int) -> str:        
+def memory(memInt:int) -> str:
+        if memInt % 4 != 0:
+                raise ZeroDivisionError
+           
         mem = "0x" + format((memInt & 0xFFFFFFFF), "08x").upper()
         if mem not in memStates:
                 raise ZeroDivisionError
@@ -180,6 +183,7 @@ def RType(binString:str):
         global regStates
         global instructions
 
+        #To be made
         pass
 
 def IType(binString:str):
@@ -251,18 +255,11 @@ def IType(binString:str):
                         new_pc = new_pc & 0xFFFFFFFE
                         new_pc= new_pc & 0xFFFFFFFF
                         
-                        if(new_pc // 4 >= len(instructions)):
+                        if new_pc // 4 >= len(instructions) or new_pc < 0 or new_pc % 4 != 0:
                                 raise ZeroDivisionError
                         else:
                                 pc = new_pc
-                
-                case _:
-                        raise ZeroDivisionError
-                
         return
-
-
-
 
 def SType(binstring:str):
 
@@ -271,53 +268,41 @@ def SType(binstring:str):
         global memStates
         global instructions
 
-        funct3=binstring[-15:-12]
-        imm1=binstring[-32:25]
-        imm2=binstring[-12:-7]
+        funct3 = binstring[-15:-12]
+        imm = binstring[-32:-25] + binstring[-12:-7]
 
-        imm=imm1+imm2
+        rs2 = binstring[-25:-20]
+        rs1 = binstring[-20:-15]
 
-        rs2=binstring[-25:-20]
-        rs1=binstring[-20:-15]
-
-        inst1=int(rs1,2)
-        inst2=int(rs2,2)
+        rs1 = int(rs1,2)
+        rs2 = int(rs2,2)
 
 
-        if(inst1 not in regStates or inst2 not in regStates):
+        if rs1 not in regStates or rs2 not in regStates:
                 raise ZeroDivisionError
         
-        if funct3=="010":
-                inst_="sw"
-        else :
+        if funct3 != "010":
                 raise ZeroDivisionError
         
-        val1=regStates.get(inst1)
-        val2=regStates.get(inst2)
+        val1 = regStates.get(rs1)
+        val2 = regStates.get(rs2)
 
-        imm_value=signExt("0b"+imm,"S")
-
-        value= int(imm_value,2)
-
-        if(imm_value[2]=="0"):
-                offset=value
-        else:
-                offset=value-2**32
-
-        memory_=memory(val1+offset)
-
-        if memory_ not in memStates:
+        temp = int(imm, 2)
+        if temp%4 != 0 or temp > 2048:
                 raise ZeroDivisionError
-        # else 
-        memStates[memory_]=val2
         
+        imm = signExt(imm, "S")
+        imm = int(imm, 2) if (imm[0] == "0") else int(imm, 2) - (2**32)
 
+        memAdd = memory(val1 + imm)
+        memStates[memAdd] = val2
+        
 def BType(binString:str):
         global pc
         global regStates
         global memStates
         global instructions
-        
+        #To be made
         pass
 
 def UType(binString:str):
@@ -326,43 +311,61 @@ def UType(binString:str):
         global memStates
         global instructions
         
-        if binString[-12:-7] == "00000":
+        rd = binString[-12:-7]
+        if rd == "00000":
                 return
         
+        imm = binString[:-12]
+        temp = int(imm, 2)
+        if temp > 1048575:
+                raise ZeroDivisionError
+        
+        imm = signExt(imm, "U")
+        imm = int(imm, 2) if (imm[0] == "0") else int(imm, 2) - (2**32)
+        rd = int(rd, 2)
+        
+        if rd not in regStates:
+                raise ZeroDivisionError
+
         opcode = binString[-7:]
         
         match opcode:
                 case "0110111":
-                        rd = binString[-12:-7]
-                        imm = binString[:-12]
-                        temp = int(imm, 2)
-                        if temp > 524287:
-                                raise ZeroDivisionError
-
-                        imm = signExt(imm, "U")
-                        imm = int(imm, 2) if (imm[0] == "0") else int(imm, 2) - (2**32)
-                        rd = int(rd, 2)
-                        
-                        if rd not in regStates:
-                                raise ZeroDivisionError
-
                         regStates[rd] = imm
 
-
                 case "0010111":
-                        pass
-                case _:
-                        raise ZeroDivisionError
+                        val = pc + imm
+                        if val > ((2**31) - 1) or val < -(2**31):
+                                raise ZeroDivisionError
+                        regStates[rd] = val
         
-
-
 def JType(binString:str):
         global pc
         global regStates
         global memStates
         global instructions
         
-        pass
+        imm = binString[-32] + binString[-20:-12] + binString[-21] + binString[-31:-21]
+
+        temp = int(imm, 2)
+        if temp > 1048575 or temp < 0:
+                raise ZeroDivisionError
+        imm = signExt(imm, "J")
+        imm = int(imm, 2) if (imm[0] == "0") else int(imm, 2) - (2**32)
+
+        rd = binString[-12:-7]
+        rd = int(rd, 2)
+        if rd not in regStates:
+                raise ZeroDivisionError
+        
+        new_pc = pc + imm
+        new_pc= new_pc & 0xFFFFFFFF
+                        
+        if new_pc // 4 >= len(instructions) or new_pc < 0 or new_pc % 4 != 0:
+                raise ZeroDivisionError
+
+        regStates[rd] = pc + 4 if (rd != 0) else 0
+        pc = new_pc
 
 def writeRegStates(): #this function will write onto a list
         global regStates
@@ -397,6 +400,7 @@ def main():
         4. Write traceList (and \n) after no errors and halt has been encountered.
 
         """
+        #To be made
         pass
 
 # remove pass after function is created
