@@ -261,13 +261,56 @@ def IType(binString:str):
                 
         return
 
-def SType(binString:str):
+
+
+
+def SType(binstring:str):
+
         global pc
         global regStates
         global memStates
         global instructions
+
+        funct3=binstring[-15:-12]
+        imm1=binstring[-32:25]
+        imm2=binstring[-12:-7]
+
+        imm=imm1+imm2
+
+        rs2=binstring[-25:-20]
+        rs1=binstring[-20:-15]
+
+        inst1=int(rs1,2)
+        inst2=int(rs2,2)
+
+
+        if(inst1 not in regStates or inst2 not in regStates):
+                raise ZeroDivisionError
         
-        pass
+        if funct3=="010":
+                inst_="sw"
+        else :
+                raise ZeroDivisionError
+        
+        val1=regStates.get(inst1)
+        val2=regStates.get(inst2)
+
+        imm_value=signExt("0b"+imm,"S")
+
+        value= int(imm_value,2)
+
+        if(imm_value[2]=="0"):
+                offset=value
+        else:
+                offset=value-2**32
+
+        memory_=memory(val1+offset)
+
+        if memory_ not in memStates:
+                raise ZeroDivisionError
+        # else 
+        memStates[memory_]=val2
+        
 
 def BType(binString:str):
         global pc
