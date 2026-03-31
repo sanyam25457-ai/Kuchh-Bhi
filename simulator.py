@@ -302,8 +302,57 @@ def BType(binString:str):
         global regStates
         global memStates
         global instructions
-        #To be made
-        pass
+        
+        funct3 = binString[-15:-12]
+        opcode = binString[-7:]
+        imm_12 = binString[-32]             
+        imm_11 = binString[-8]              
+        imm_10_5 = binString[-31:-25]       
+        imm_4_1 = binString[-12:-8]
+
+        immString = imm_12 + imm_11 + imm_10_5 + imm_4_1
+        imm = signExt(immString, "B")
+
+        rs1_bin = binString[-20:-15]
+        rs2_bin = binString[-25:-20]
+        rs1 = int(rs1_bin, 2)
+        rs2 = int(rs2_bin, 2)
+
+        if (rs1 not in regStates) or (rs2 not in regStates):
+                raise ZeroDivisionError
+        
+        v1 = regStates.get(rs1)
+        v2 = regStates.get(rs2)
+
+        if imm[0] == "0":
+                offset = int(imm, 2)
+        else:
+                offset = int(imm, 2) - 2**32
+
+        take_branch = False
+        
+        match funct3:
+                case "000":
+                        take_branch = (v1 == v2)
+                case "001":
+                        take_branch = (v1 != v2)
+                case "100":
+                        take_branch = (v1 < v2)
+                case "101":
+                        take_branch = (v1 >= v2)
+                case "110":
+                        take_branch = (v1 & 0xFFFFFFFF) < (v2 & 0xFFFFFFFF)
+                case "111":
+                        take_branch = (v1 & 0xFFFFFFFF) >= (v2 & 0xFFFFFFFF)
+                case _:
+                        raise ZeroDivisionError
+                
+        if take_branch:
+                new_pc = pc + offset
+                if (new_pc // 4 >= len(instructions)) or (new_pc < 0):
+                        raise ZeroDivisionError
+                else:
+                        pc = new_pc
 
 def UType(binString:str):
         global pc
