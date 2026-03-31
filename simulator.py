@@ -119,8 +119,11 @@ memStates = {
 
 def execute(binString:str):
         binString = binString.strip()
+
         if len(binString) > 32:
                 raise ZeroDivisionError
+        elif len(binString) == 0:
+                return
         
         opcode = binString[-7:]
         funcType = opcodes.get(opcode)
@@ -182,7 +185,6 @@ def RType(binString:str):
         global pc
         global regStates
         global regStates
-        global instructions
 
         #To be made
         pass
@@ -191,7 +193,7 @@ def IType(binString:str):
         global pc
         global regStates
         global memStates
-        global instructions
+        global jump
 
         funct3 = binString[-15:-12]
         opcode = binString[-7:]
@@ -277,7 +279,6 @@ def SType(binstring:str):
         global pc
         global regStates
         global memStates
-        global instructions
 
         funct3 = binstring[-15:-12]
         imm = binstring[-32:-25] + binstring[-12:-7]
@@ -315,22 +316,21 @@ def BType(binString:str):
         global pc
         global regStates
         global memStates
-        global instructions
+        global jump
         
         funct3 = binString[-15:-12]
-        opcode = binString[-7:]
         imm_12 = binString[-32]             
         imm_11 = binString[-8]              
         imm_10_5 = binString[-31:-25]       
         imm_4_1 = binString[-12:-8]
 
-        immString = imm_12 + imm_11 + imm_10_5 + imm_4_1
-        imm = signExt(immString, "B")
+        imm = imm_12 + imm_11 + imm_10_5 + imm_4_1
+        imm = signExt(imm, "B")
 
-        rs1_bin = binString[-20:-15]
-        rs2_bin = binString[-25:-20]
-        rs1 = int(rs1_bin, 2)
-        rs2 = int(rs2_bin, 2)
+        rs1 = binString[-20:-15]
+        rs2 = binString[-25:-20]
+        rs1 = int(rs1, 2)
+        rs2 = int(rs2, 2)
 
         if (rs1 not in regStates) or (rs2 not in regStates):
                 raise ZeroDivisionError
@@ -338,11 +338,10 @@ def BType(binString:str):
         v1 = regStates.get(rs1)
         v2 = regStates.get(rs2)
 
-        if imm[0] == "0":
-                offset = int(imm, 2)
-        else:
-                offset = int(imm, 2) - 2**32
-
+        offset = int(imm, 2) if (imm[0] == "0") else int(imm, 2) - (2**32)
+        if not(offset < 2*12 and offset >= -(2**12)):
+                raise ZeroDivisionError
+        
         take_branch = False
         
         match funct3:
@@ -365,14 +364,15 @@ def BType(binString:str):
                 new_pc = pc + offset
                 if (new_pc // 4 >= len(instructions)) or (new_pc < 0):
                         raise ZeroDivisionError
+                
                 else:
                         pc = new_pc
+                        jump = True
 
 def UType(binString:str):
         global pc
         global regStates
         global memStates
-        global instructions
         
         rd = binString[-12:-7]
         if rd == "00000":
@@ -408,7 +408,7 @@ def JType(binString:str):
         global pc
         global regStates
         global memStates
-        global instructions
+        global jump
         
         imm = binString[-32] + binString[-20:-12] + binString[-21] + binString[-31:-21]
 
@@ -474,6 +474,7 @@ def main():
         global traceList
         global errMSG
         global errors
+        global jump
 
         instructions = [] 
         
@@ -512,6 +513,7 @@ def main():
                         
                         except ZeroDivisionError:
                                 break
+                        
                         pc += 4
                 
                 else:
