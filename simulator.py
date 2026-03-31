@@ -24,6 +24,8 @@
 
 import sys
 
+instructions = [] 
+
 jump = False
 
 traceList = []
@@ -119,7 +121,7 @@ memStates = {
 
 def execute(binString:str):
         binString = binString.strip()
-
+        
         if len(binString) > 32:
                 raise ZeroDivisionError
         elif len(binString) == 0:
@@ -185,6 +187,7 @@ def RType(binString:str):
         global pc
         global regStates
         global regStates
+        global instructions
 
         #To be made
         pass
@@ -193,6 +196,7 @@ def IType(binString:str):
         global pc
         global regStates
         global memStates
+        global instructions
         global jump
 
         funct3 = binString[-15:-12]
@@ -275,10 +279,10 @@ def IType(binString:str):
                         jump = True
         
 def SType(binstring:str):
-
         global pc
         global regStates
         global memStates
+        global instructions
 
         funct3 = binstring[-15:-12]
         imm = binstring[-32:-25] + binstring[-12:-7]
@@ -316,6 +320,7 @@ def BType(binString:str):
         global pc
         global regStates
         global memStates
+        global instructions
         global jump
         
         funct3 = binString[-15:-12]
@@ -373,6 +378,7 @@ def UType(binString:str):
         global pc
         global regStates
         global memStates
+        global instructions
         
         rd = binString[-12:-7]
         if rd == "00000":
@@ -408,6 +414,7 @@ def JType(binString:str):
         global pc
         global regStates
         global memStates
+        global instructions
         global jump
         
         imm = binString[-32] + binString[-20:-12] + binString[-21] + binString[-31:-21]
@@ -475,8 +482,7 @@ def main():
         global errMSG
         global errors
         global jump
-
-        instructions = [] 
+        global instructions
         
         input_file = sys.argv[1]
         machine_out = sys.argv[2]
@@ -513,7 +519,6 @@ def main():
                         
                         except ZeroDivisionError:
                                 break
-                        
                         pc += 4
                 
                 else:
