@@ -22,14 +22,13 @@
 
 #10. Always check if register 0 is being updated. If x0 is the destination register do nothing.
 
+import sys
 
-from io import TextIOWrapper
+jump = False
 
 traceList = []
 
 pc = 0 #PC is always updated by +4
-
-instructions=[]
 
 errors = {}
 
@@ -119,8 +118,10 @@ memStates = {
 }
 
 def execute(binString:str):
+        binString = binString.strip()
         if len(binString) > 32:
                 raise ZeroDivisionError
+        
         opcode = binString[-7:]
         funcType = opcodes.get(opcode)
 
@@ -225,6 +226,9 @@ def IType(binString:str):
                         sum = num1 + num2
                         sum = format(sum & 0xFFFFFFFF, "032b")
                         valrd = int(sum[-32:], 2) if (sum[-32] == "0") else int(sum[-32:], 2) - (2**32)
+                        
+                        if not(valrd < 2**32 and valrd >= -(2**32)):
+                                raise ZeroDivisionError
                         regStates[rd] = valrd
 
                 case "sltiu":
@@ -234,6 +238,9 @@ def IType(binString:str):
                         num1 = int(imm, 2)
                         num2 = regStates.get(rs1) & 0xFFFFFFFF
                         valrd = 1 if num2 < (num1) else 0
+                        
+                        if not(valrd < 2**32 and valrd >= -(2**32)):
+                                raise ZeroDivisionError
                         regStates[rd] = valrd
                 
                 case "lw":
@@ -244,10 +251,14 @@ def IType(binString:str):
                         offset = int(imm,2) if (imm[0] == "0") else int(imm, 2) - (2**32)
                         mem_add = memory(val+offset)
                         valrd = memStates.get(mem_add)
+                        
+                        if not(valrd < 2**32 and valrd >= -(2**32)):
+                                raise ZeroDivisionError
                         regStates[rd] = valrd
+                                
                 
                 case "jalr":
-                        regStates[rd] = pc + 4 if (rd!=0) else 0
+                        regStates[rd] = pc if (rd!=0) else 0
                         val = regStates.get(rs1)
                         offset = int(imm,2) if (imm[0]=="0") else int(imm,2) - (2**32)
                         
@@ -257,10 +268,10 @@ def IType(binString:str):
                         
                         if new_pc // 4 >= len(instructions) or new_pc < 0 or new_pc % 4 != 0:
                                 raise ZeroDivisionError
-                        else:
-                                pc = new_pc
-        return
-
+                        
+                        pc = new_pc
+                        jump = True
+        
 def SType(binstring:str):
 
         global pc
@@ -295,8 +306,11 @@ def SType(binstring:str):
         imm = int(imm, 2) if (imm[0] == "0") else int(imm, 2) - (2**32)
 
         memAdd = memory(val1 + imm)
-        memStates[memAdd] = val2
         
+        if not(val2 < 2**32 and val2 >= -(2**32)):
+                raise ZeroDivisionError
+        memStates[memAdd] = val2
+                    
 def BType(binString:str):
         global pc
         global regStates
@@ -380,7 +394,9 @@ def UType(binString:str):
         
         match opcode:
                 case "0110111":
-                        regStates[rd] = imm
+                        if not(imm < 2**32 and imm >= -(2**32)):
+                                raise ZeroDivisionError
+                        regStates[rd] = imm                                
 
                 case "0010111":
                         val = pc + imm
@@ -412,9 +428,14 @@ def JType(binString:str):
                         
         if new_pc // 4 >= len(instructions) or new_pc < 0 or new_pc % 4 != 0:
                 raise ZeroDivisionError
-
+        
+        if not(pc < 2**32 and pc >= - (2**32)):
+                raise ZeroDivisionError
+        
         regStates[rd] = pc + 4 if (rd != 0) else 0
+        
         pc = new_pc
+        jump = True
 
 def writeRegStates(): #this function will write onto a list
         global regStates
@@ -449,8 +470,59 @@ def main():
         4. Write traceList (and \n) after no errors and halt has been encountered.
 
         """
-        #To be made
-        pass
+        global pc 
+        global traceList
+        global errMSG
+        global errors
+
+        instructions = [] 
+        
+        input_file = sys.argv[1]
+        machine_out = sys.argv[2]
+        optional_out = sys.argv[3] if (len(sys.argv) > 3) else None
+        
+        fh_read = open(input_file, "r")
+        instructions = fh_read.readlines()
+        
+        ind = pc
+        run = True
+        
+        if "00000000000000000000000001100011" not in instructions:
+                run = False
+                print("Error Encountered!!\n\
+                      Error Message: Virtual Halt not present in the instructions")
+        
+        elif instructions[-1] != "00000000000000000000000001100011":
+                run = False
+                print("Error Encountered!!\n\
+                      Error Message: Virtual Halt is not present as final Statement")
+        
+        else:        
+                while(instructions[ind] != "00000000000000000000000001100011" and run and ind < len(instructions)):
+                        ind = pc//4
+                        pc = pc + 4 if (not jump) else pc
+                        jump = False
+
+                        try:
+                                if instructions[ind].strip() == "":
+                                        continue
+                                execute(instructions[ind])
+                                writeRegStates()
+                                
+                        
+                        except ZeroDivisionError:
+                                break
+                        pc += 4
+                
+                else:
+                        try:
+                                writeMemStates()
+                                fh_write = open(machine_out, "w")
+                                fh_write.writelines(traceList)
+                        
+                        except ZeroDivisionError:
+                                print("Error Encountered!!\n\
+                                      Error Message: Overflow was detected while writing memory")          
 
 # remove pass after function is created
 if __name__ == "__main__":
