@@ -189,8 +189,91 @@ def RType(binString:str):
         global regStates
         global instructions
 
-        #To be made
-        pass
+        funct7=binString[-32:-25]
+        rs2=binString[-25:-20]
+        rs1=binString[-20:-15]
+        funct3=binString[-15:-12]
+        rd=binString[-12:-7]
+
+        int_1=int(rs1,2)
+        int_2=int(rs2,2)
+
+        int_rd=(int(rd,2))
+
+        if(int_1 not in regStates or int_2 not in regStates or int_rd not in regStates):
+                raise ZeroDivisionError
+        
+        if(funct3=="000" and funct7=="0000000"):
+                instn="add"
+        elif (funct3=="000" and funct7=="0100000"):
+                instn="sub"
+        elif(funct3=="111" and funct7=="0000000"):
+                instn="and"
+        elif(funct3=="110" and funct7=="0000000"):
+                instn="or" 
+        elif(funct3=="010" and funct7=="0000000"):
+                instn="slt"
+        else :
+                raise ZeroDivisionError
+        match instn:
+                case "add":
+                        if(int_rd==0):
+                                return
+                        num1 = regStates.get(int_1)
+                        num2 = regStates.get(int_2)
+                        sum = num1 + num2
+                        sum = format(sum & 0xFFFFFFFF,"032b")
+                        valrd = int(sum,2) if sum[0]=="0" else int(sum,2)-2**32
+                        regStates[int_rd] = valrd
+
+                case "sub":
+                        if(int_rd==0):
+                                return
+                        num1 = regStates.get(int_1)
+                        num2 = regStates.get(int_2)
+                        diff = num1 - num2
+                        diff = format(diff & 0xFFFFFFFF,"032b")
+                        valrd = int(diff,2) if diff[0]=="0" else int(diff,2)-2**32
+                        regStates[int_rd] = valrd
+
+                case "and":
+                        if(int_rd==0):
+                                return
+                        num1 = regStates.get(int_1)
+                        num2 = regStates.get(int_2)
+                        res = num1 & num2
+                        res = format(res & 0xFFFFFFFF,"032b")
+                        valrd = int(res,2) if res[0]=="0" else int(res,2)-2**32
+                        regStates[int_rd] = valrd
+
+                case "or":
+                        if(int_rd==0):
+                                return
+                        num1 = regStates.get(int_1)
+                        num2 = regStates.get(int_2)
+                        res = num1 | num2
+                        res = format(res & 0xFFFFFFFF,"032b")
+                        valrd = int(res,2) if res[0]=="0" else int(res,2)-2**32
+                        regStates[int_rd] = valrd
+
+                case "slt":
+                        if(int_rd==0):
+                                return
+                        num1 = regStates.get(int_1)
+                        num2 = regStates.get(int_2)
+                        valrd = 1 if num1 < num2 else 0
+                        regStates[int_rd] = valrd
+
+                case _:
+                        raise ZeroDivisionError
+
+
+
+
+
+
+        
+        
 
 def IType(binString:str):
         global pc
