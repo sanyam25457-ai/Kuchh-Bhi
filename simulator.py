@@ -28,13 +28,11 @@ instructions = []
 
 jump = False
 
+noMem = False
+
 traceList = []
 
 pc = 0 #PC is always updated by +4
-
-errors = {}
-
-errMSG = {}
 
 opcodes = {
         "0110011" : "R",
@@ -176,12 +174,10 @@ def signExt(immString:str, funcType:str) -> str:
 
 def memory(memInt:int) -> str:
         if memInt % 4 != 0:
-                print("ab kya kru")
-                raise ZeroDivisionError
+                raise ValueError
            
         mem = "0x" + format((memInt & 0xFFFFFFFF), "08x").upper()
         if mem not in memStates:
-                print("dhatt")
                 raise ZeroDivisionError
         return mem
 
@@ -355,7 +351,8 @@ def IType(binString:str):
                         val = regStates.get(rs1)
                         offset = int(imm,2) if (imm[0] == "0") else int(imm, 2) - (2**32)
                         mem_add = memory(val+offset)
-                        valrd = memStates.get(mem_add)
+                        valrd = memStates.get(mem_add) 
+                        valrd = 0 if (valrd == None) else valrd
                         
                         if not(valrd < 2**32 and valrd >= -(2**32)):
                                 raise ZeroDivisionError
@@ -363,9 +360,9 @@ def IType(binString:str):
                                 
                 
                 case "jalr":
-                        regStates[rd] = pc if (rd!=0) else 0
+                        regStates[rd] = pc if (rd != 0) else 0
                         val = regStates.get(rs1)
-                        offset = int(imm,2) if (imm[0]=="0") else int(imm,2) - (2**32)
+                        offset = int(imm, 2) if (imm[0] == "0") else int(imm, 2) - (2**32)
                         
                         new_pc = val + offset
                         new_pc = new_pc & 0xFFFFFFFE
@@ -394,11 +391,9 @@ def SType(binstring:str):
 
 
         if rs1 not in regStates or rs2 not in regStates:
-                print("umm")
                 raise ZeroDivisionError
         
         if funct3 != "010":
-                print("oof")
                 raise ZeroDivisionError
         
         val1 = regStates.get(rs1)
@@ -406,16 +401,21 @@ def SType(binstring:str):
 
         temp = int(imm, 2)
         if temp%4 != 0 or temp > 2048:
-                print("abbey yaar")
                 raise ZeroDivisionError
         
         imm = signExt(imm, "S")
         imm = int(imm, 2) if (imm[0] == "0") else int(imm, 2) - (2**31)
 
-        memAdd = memory(val1 + imm)
+        try:
+                memAdd = memory(val1 + imm)
         
+        except ZeroDivisionError:
+                return
+        
+        except ValueError:
+                raise ValueError
+
         if not(val2 < 2**32 and val2 >= -(2**32)):
-                print("huh")
                 raise ZeroDivisionError
         memStates[memAdd] = val2
 
@@ -586,6 +586,7 @@ def main():
         global errors
         global jump
         global instructions
+        global noMem
         
         input_file = sys.argv[1]
         machine_out = sys.argv[2]
@@ -606,7 +607,6 @@ def main():
                 while(instructions[ind].strip() != "00000000000000000000000001100011" and run and ind < len(instructions)):
                         ind = pc//4
                         jump = False
-                        print(instructions[ind], ind)
                         try:
                                 if instructions[ind].strip() == "":
                                         continue
@@ -616,24 +616,26 @@ def main():
                                 
                         
                         except ZeroDivisionError:
-                                print("hi")
                                 break
                         
-                else:
-                        try:
-                                print("hehe")
-                                writeMemStates()
-                                fh_write = open(machine_out, "w")
-                                for i in traceList:
-                                        fh_write.write(i)
-                                        fh_write.write("\n")
-                                fh_write.close()
+                        except ValueError:
+                                noMem = True
+                                break
                         
-                        except ZeroDivisionError:
-                                print("Error Encountered!!\n\
-                                      Error Message: Overflow was detected while writing memory")          
-                        except Exception as err:
-                                print(err)
+                try:
+                        if not noMem:
+                                writeMemStates()
+
+                        fh_write = open(machine_out, "w")
+                        for i in traceList:
+                                fh_write.write(i)
+                                fh_write.write("\n")
+                        fh_write.close()
+                
+                except ZeroDivisionError:
+                        print("Error Encountered!!\n\
+                                Error Message: Overflow was detected while writing memory")          
+
 # remove pass after function is created
 if __name__ == "__main__":
         main()
