@@ -523,20 +523,20 @@ def main():
                                 resetErrors()
                         break
         else:
-
-                if ("00000000000000000000000001100011" == binInst[-1]):
-                        with open(machine_out, "w") as fh_write:
+                with open(machine_out, "w") as fh_write:
+                        if ("00000000000000000000000001100011" == binInst[-1]):
                                 for i in binInst:
                                         fh_write.write(i)
                                         fh_write.write("\n")
                                         fh_write.flush()
 
-                elif "00000000000000000000000001100011" in binInst:
-                        print("Virtual Halt statement not the final statement")
+                        elif "00000000000000000000000001100011" in binInst:
+                                print("Virtual Halt statement not the final statement")
         
-                else:
-                        print("No Virtual Halt statement found")
-        
+                        else:
+                                print("No Virtual Halt statement found")
+                fh_write.close()
+                
 #Please remove pass after the function has been built
 if __name__ == "__main__":
         main()
