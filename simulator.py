@@ -598,7 +598,7 @@ def main():
         ind = pc
         run = True
         
-        if "00000000000000000000000001100011\n" not in instructions or "00000000000000000000000001100011" not in instructions and "00000000000000000000000001100011" not in instructions:
+        if "00000000000000000000000001100011\n" not in instructions and "00000000000000000000000001100011" not in instructions and "00000000000000000000000001100011" not in instructions:
                 run = False
                 print("Error Encountered!!\n\
                       Error Message: Virtual Halt not present in the instructions")
