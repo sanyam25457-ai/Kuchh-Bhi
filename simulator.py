@@ -51,7 +51,7 @@ opcodes = {
 regStates = {
         0 :  0,
         1 :  0,
-        2 :  0,
+        2 :  380,
         3 :  0,
         4 :  0,
         5 :  0,
@@ -122,7 +122,7 @@ memStates = {
 def execute(binString:str):
         binString = binString.strip()
         
-        if len(binString) > 32:
+        if len(binString) != 32:
                 raise ZeroDivisionError
         elif len(binString) == 0:
                 return
@@ -176,10 +176,12 @@ def signExt(immString:str, funcType:str) -> str:
 
 def memory(memInt:int) -> str:
         if memInt % 4 != 0:
+                print("ab kya kru")
                 raise ZeroDivisionError
            
         mem = "0x" + format((memInt & 0xFFFFFFFF), "08x").upper()
         if mem not in memStates:
+                print("dhatt")
                 raise ZeroDivisionError
         return mem
 
@@ -189,91 +191,105 @@ def RType(binString:str):
         global regStates
         global instructions
 
-        funct7=binString[-32:-25]
-        rs2=binString[-25:-20]
-        rs1=binString[-20:-15]
-        funct3=binString[-15:-12]
-        rd=binString[-12:-7]
+        funct7 = binString[-32:-25]
+        rs2 = binString[-25:-20]
+        rs1 = binString[-20:-15]
+        funct3 = binString[-15:-12]
+        rd = binString[-12:-7]
 
-        int_1=int(rs1,2)
-        int_2=int(rs2,2)
+        rs1 = int(rs1,2)
+        rs2 = int(rs2,2)
 
-        int_rd=(int(rd,2))
+        rd = (int(rd,2))
+        if rd == 0:
+                return
 
-        if(int_1 not in regStates or int_2 not in regStates or int_rd not in regStates):
+        if rs1 not in regStates or rs2 not in regStates or rd not in regStates:
                 raise ZeroDivisionError
         
-        if(funct3=="000" and funct7=="0000000"):
-                instn="add"
-        elif (funct3=="000" and funct7=="0100000"):
-                instn="sub"
-        elif(funct3=="111" and funct7=="0000000"):
-                instn="and"
-        elif(funct3=="110" and funct7=="0000000"):
-                instn="or" 
-        elif(funct3=="010" and funct7=="0000000"):
-                instn="slt"
+        if funct7 == "0000000":
+                if funct3 == "000":
+                        instn = "add"
+                elif funct3 == "001":
+                        instn = "sll"
+                elif funct3 == "010":
+                        instn = "slt"
+                elif funct3 == "011":
+                        instn = "sltu"
+                elif funct3 == "100":
+                        instn = "xor"
+                elif funct3 == "101":
+                        instn = "srl"
+                elif funct3 == "110":
+                        instn = "or"
+                elif funct3 == "111":
+                        instn = "and"
+                else:
+                        raise ZeroDivisionError
+        
+        elif funct3 == "000" and funct7 == "0100000":
+                instn = "sub"
+        
         else :
                 raise ZeroDivisionError
+
         match instn:
                 case "add":
-                        if(int_rd==0):
-                                return
-                        num1 = regStates.get(int_1)
-                        num2 = regStates.get(int_2)
-                        sum = num1 + num2
-                        sum = format(sum & 0xFFFFFFFF,"032b")
-                        valrd = int(sum,2) if sum[0]=="0" else int(sum,2)-2**32
-                        regStates[int_rd] = valrd
+                        num1 = regStates.get(rs1)
+                        num2 = regStates.get(rs2)
+                        valrd = num1 + num2
 
                 case "sub":
-                        if(int_rd==0):
-                                return
-                        num1 = regStates.get(int_1)
-                        num2 = regStates.get(int_2)
-                        diff = num1 - num2
-                        diff = format(diff & 0xFFFFFFFF,"032b")
-                        valrd = int(diff,2) if diff[0]=="0" else int(diff,2)-2**32
-                        regStates[int_rd] = valrd
+                        num1 = regStates.get(rs1)
+                        num2 = regStates.get(rs2)
+                        valrd = num1 - num2
+
+                case "sll":
+                        num1 = regStates.get(rs1)
+                        num2 = regStates.get(rs2)
+                        num2 = (bin(abs(num2)))[2:]
+                        num2 = int(num2[-5:], 2)
+                        valrd = num1 << num2                      
+                
+                case "slt":
+                        num1 = regStates.get(rs1)
+                        num2 = regStates.get(rs2)
+                        valrd = 1 if num1 < num2 else 0
+                
+                case "sltu":
+                        num1 = regStates.get(rs1)
+                        num2 = regStates.get(rs2)
+                        num1, num2 = abs(num1), abs(num2)
+                        valrd = 1 if num1 < num2 else 0
+                
+                case "xor":
+                        num1 = regStates.get(rs1)
+                        num2 = regStates.get(rs2)
+                        valrd = num1 ^ num2
+                
+                case "srl":
+                        num1 = regStates.get(rs1)
+                        num2 = regStates.get(rs2)
+                        num2 = (bin(abs(num2)))[2:]
+                        num2 = int(num2[-5:], 2)
+                        valrd = num1 >> num2 
+                
+                case "or":
+                        num1 = regStates.get(rs1)
+                        num2 = regStates.get(rs2)
+                        valrd = num1 | num2
 
                 case "and":
-                        if(int_rd==0):
-                                return
-                        num1 = regStates.get(int_1)
-                        num2 = regStates.get(int_2)
-                        res = num1 & num2
-                        res = format(res & 0xFFFFFFFF,"032b")
-                        valrd = int(res,2) if res[0]=="0" else int(res,2)-2**32
-                        regStates[int_rd] = valrd
-
-                case "or":
-                        if(int_rd==0):
-                                return
-                        num1 = regStates.get(int_1)
-                        num2 = regStates.get(int_2)
-                        res = num1 | num2
-                        res = format(res & 0xFFFFFFFF,"032b")
-                        valrd = int(res,2) if res[0]=="0" else int(res,2)-2**32
-                        regStates[int_rd] = valrd
-
-                case "slt":
-                        if(int_rd==0):
-                                return
-                        num1 = regStates.get(int_1)
-                        num2 = regStates.get(int_2)
-                        valrd = 1 if num1 < num2 else 0
-                        regStates[int_rd] = valrd
+                        num1 = regStates.get(rs1)
+                        num2 = regStates.get(rs2)
+                        valrd = num1 & num2
 
                 case _:
                         raise ZeroDivisionError
 
-
-
-
-
-
-        
-        
+        if not(valrd >= -(2**32) and valrd < 2**32):
+                raise ZeroDivisionError
+        regStates[rd] = valrd
 
 def IType(binString:str):
         global pc
@@ -360,7 +376,7 @@ def IType(binString:str):
                         
                         pc = new_pc
                         jump = True
-        
+
 def SType(binstring:str):
         global pc
         global regStates
@@ -378,9 +394,11 @@ def SType(binstring:str):
 
 
         if rs1 not in regStates or rs2 not in regStates:
+                print("umm")
                 raise ZeroDivisionError
         
         if funct3 != "010":
+                print("oof")
                 raise ZeroDivisionError
         
         val1 = regStates.get(rs1)
@@ -388,17 +406,20 @@ def SType(binstring:str):
 
         temp = int(imm, 2)
         if temp%4 != 0 or temp > 2048:
+                print("abbey yaar")
                 raise ZeroDivisionError
         
         imm = signExt(imm, "S")
-        imm = int(imm, 2) if (imm[0] == "0") else int(imm, 2) - (2**32)
-
+        imm = int(imm, 2) if (imm[0] == "0") else int(imm, 2) - (2**31)
+        print(imm)
+        print(val1)
         memAdd = memory(val1 + imm)
         
         if not(val2 < 2**32 and val2 >= -(2**32)):
+                print("huh")
                 raise ZeroDivisionError
         memStates[memAdd] = val2
-                    
+
 def BType(binString:str):
         global pc
         global regStates
@@ -419,15 +440,15 @@ def BType(binString:str):
         rs2 = binString[-25:-20]
         rs1 = int(rs1, 2)
         rs2 = int(rs2, 2)
-
+        
         if (rs1 not in regStates) or (rs2 not in regStates):
                 raise ZeroDivisionError
         
         v1 = regStates.get(rs1)
         v2 = regStates.get(rs2)
 
-        offset = int(imm, 2) if (imm[0] == "0") else int(imm, 2) - (2**32)
-        if not(offset < 2*12 and offset >= -(2**12)):
+        offset = int(imm, 2) if (imm[0] == "0") else int(imm, 2) - (2**31)
+        if not(offset < 2**12 and offset >= -(2**12)):
                 raise ZeroDivisionError
         
         take_branch = False
@@ -447,7 +468,7 @@ def BType(binString:str):
                         take_branch = (v1 & 0xFFFFFFFF) >= (v2 & 0xFFFFFFFF)
                 case _:
                         raise ZeroDivisionError
-                
+
         if take_branch:
                 new_pc = pc + offset
                 if (new_pc // 4 >= len(instructions)) or (new_pc < 0):
@@ -492,7 +513,7 @@ def UType(binString:str):
                         if val > ((2**31) - 1) or val < -(2**31):
                                 raise ZeroDivisionError
                         regStates[rd] = val
-        
+
 def JType(binString:str):
         global pc
         global regStates
@@ -532,12 +553,12 @@ def writeRegStates(): #this function will write onto a list
         global pc
         trace = ""
         
-        pcValue = format(pc, "032b") + " "
+        pcValue = "0b" + format(pc, "032b") + " "
         trace += pcValue
 
         regValue = ""
         for i in range(32):
-                regValue = format(regStates.get(i) & 0xFFFFFFFF, "032b")
+                regValue = "0b" + format(regStates.get(i) & 0xFFFFFFFF, "032b")
                 trace += regValue + " "
         traceList.append(trace)
 
@@ -547,7 +568,7 @@ def writeMemStates():
 
         memValue = ""
         for i in sorted(memStates.keys()):
-                memValue = format(memStates.get(i) & 0xFFFFFFFF, "032b")
+                memValue = "0b" + format(memStates.get(i) & 0xFFFFFFFF, "032b")
                 traceList.append(i + ":" + memValue)
 
 def main():
@@ -570,50 +591,50 @@ def main():
         input_file = sys.argv[1]
         machine_out = sys.argv[2]
         optional_out = sys.argv[3] if (len(sys.argv) > 3) else None
-        
+
         fh_read = open(input_file, "r")
         instructions = fh_read.readlines()
         
         ind = pc
         run = True
         
-        if "00000000000000000000000001100011" not in instructions:
+        if "00000000000000000000000001100011\n" not in instructions:
                 run = False
                 print("Error Encountered!!\n\
                       Error Message: Virtual Halt not present in the instructions")
         
-        elif instructions[-1] != "00000000000000000000000001100011":
-                run = False
-                print("Error Encountered!!\n\
-                      Error Message: Virtual Halt is not present as final Statement")
-        
         else:        
-                while(instructions[ind] != "00000000000000000000000001100011" and run and ind < len(instructions)):
+                while(instructions[ind].strip() != "00000000000000000000000001100011" and run and ind < len(instructions)):
                         ind = pc//4
-                        pc = pc + 4 if (not jump) else pc
                         jump = False
-
+                        print(instructions[ind], ind)
                         try:
                                 if instructions[ind].strip() == "":
                                         continue
                                 execute(instructions[ind])
+                                pc = pc + 4 if (not jump) else pc
                                 writeRegStates()
                                 
                         
                         except ZeroDivisionError:
+                                print("hi")
                                 break
-                        pc += 4
-                
+                        
                 else:
                         try:
+                                print("hehe")
                                 writeMemStates()
                                 fh_write = open(machine_out, "w")
-                                fh_write.writelines(traceList)
+                                for i in traceList:
+                                        fh_write.write(i)
+                                        fh_write.write("\n")
+                                fh_write.close()
                         
                         except ZeroDivisionError:
                                 print("Error Encountered!!\n\
                                       Error Message: Overflow was detected while writing memory")          
-
+                        except Exception as err:
+                                print(err)
 # remove pass after function is created
 if __name__ == "__main__":
         main()
