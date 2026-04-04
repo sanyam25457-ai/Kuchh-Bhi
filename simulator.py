@@ -411,8 +411,7 @@ def SType(binstring:str):
         
         imm = signExt(imm, "S")
         imm = int(imm, 2) if (imm[0] == "0") else int(imm, 2) - (2**31)
-        print(imm)
-        print(val1)
+
         memAdd = memory(val1 + imm)
         
         if not(val2 < 2**32 and val2 >= -(2**32)):
@@ -598,7 +597,7 @@ def main():
         ind = pc
         run = True
         
-        if "00000000000000000000000001100011\n" not in instructions:
+        if "00000000000000000000000001100011\n" not in instructions and "00000000000000000000000001100011" not in instructions:
                 run = False
                 print("Error Encountered!!\n\
                       Error Message: Virtual Halt not present in the instructions")
